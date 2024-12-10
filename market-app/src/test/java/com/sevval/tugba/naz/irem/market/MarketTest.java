@@ -56,17 +56,6 @@ public class MarketTest {
   @After
   public void tearDown() throws Exception {
   }
-
-  /**
-   * @brief Test method to validate the addition operation.
-   *
-   * @details This method creates an instance of the Market class and calls the `add` method with two integers. It asserts the expected result of the addition operation.
-   */
-  @Test
-  public void testAddition() {
-    Market market = new Market();
-    int result = market.add(2, 3);
-    assertEquals(5, result);
-  }
-
 }
+
+

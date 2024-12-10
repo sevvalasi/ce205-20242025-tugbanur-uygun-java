@@ -11,6 +11,8 @@
 */
 package com.sevval.tugba.naz.irem.market;
 
+import java.util.Scanner;
+
 /**
  *
  * @class MarketApp
@@ -25,9 +27,15 @@ public class MarketApp {
   /**
    * @brief Logger for the MarketApp class.
    */
+	
+	
  
   public static void main(String[] args) {
-   
+	  
+	  Scanner Scanner = new Scanner(System.in);
+      Market market = new Market(Scanner, System.out);
+	  
+   Market.mainMenu();
   }
 
 }
