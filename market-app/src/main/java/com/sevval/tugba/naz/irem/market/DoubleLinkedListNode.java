@@ -3,7 +3,7 @@ package com.sevval.tugba.naz.irem.market;
 public class DoubleLinkedListNode {
     Vendor vendor; // Vendor objesi
     DoubleLinkedListNode next; // Sonraki düğüm
-    private DoubleLinkedListNode previous; // Önceki düğüm
+    DoubleLinkedListNode previous; // Önceki düğüm
 
     // Constructor
     public DoubleLinkedListNode(Vendor vendor) {
