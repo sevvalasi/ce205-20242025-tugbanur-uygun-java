@@ -6,7 +6,7 @@ public class DoubleLinkedList {
     private DoubleLinkedListNode tail; // Listenin sonu
 
     // Yeni bir düğüm eklemek için metod
-    public void insert(Vendor vendor) {
+    public void insertVendor(Vendor vendor) {
         DoubleLinkedListNode newNode = new DoubleLinkedListNode(vendor);
         if (head == null) { // Liste boşsa
             head = newNode;

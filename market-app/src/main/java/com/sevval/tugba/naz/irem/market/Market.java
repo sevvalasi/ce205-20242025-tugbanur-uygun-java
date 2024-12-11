@@ -17,11 +17,13 @@ import java.util.Scanner;
 import static java.lang.System.out;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
@@ -44,7 +46,7 @@ import java.util.Stack;
 */
 public class Market {
     public StackNode top; // Top of the stack
-
+    
 	public static Scanner scanner;
     public static PrintStream out;
     
@@ -74,7 +76,7 @@ public class Market {
 	                    listingOfLocalVendors();
 	                    break;
 	                case 2:
-	                   // listingOfLocalProducts();
+	                    listingOfLocalProducts();
 	                    break;
 	                case 3:
 	                   // priceComparison();
@@ -121,7 +123,7 @@ public class Market {
 	                    deleteVendor();
 	                    break;
 	                case 4:
-	                    //listVendors();
+	                    listVendors();
 	                    break;
 	                case 0:
 	                    out.println("Returning to main menu...");
@@ -135,7 +137,7 @@ public class Market {
 	    }
 	    
 
-		public boolean listingOfLocalProducts() {
+		public static boolean listingOfLocalProducts() {
 	        int choice;
 
 	        do {
@@ -151,16 +153,16 @@ public class Market {
 
 	            switch (choice) {
 	                case 1:
-	                    //addProduct();
+	                    addProduct();
 	                    break;
 	                case 2:
-	                    //updateProduct();
+	                    updateProduct();
 	                    break;
 	                case 3:
-	                    //deleteProduct();
+	                    deleteProduct();
 	                    break;
 	                case 4:
-	                    //listingOfLocalVendorsandProducts();
+	                    listingOfLocalVendorsandProducts();
 	                    break;
 	                case 0:
 	                    out.println("Returning to main menu...");
@@ -360,7 +362,8 @@ public class Market {
 	                    vendorQueue.add(vendor); // Queue'ya ekle
 	                }
 	                vendorStack.push(vendor); // Stack'e ekle
-	                DoubleLinkedList.insertVendor(vendor); // Doubly linked list'e ekle
+	                DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
+					doubleLinkedList.insertVendor(vendor); // Doubly linked list'e ekle
 	            }
 	        } catch (EOFException e) {
 	            // Dosya sonuna ulaşıldı
@@ -382,8 +385,8 @@ public class Market {
 	                    System.out.println("No more vendors in this direction.");
 	                }
 	            } else if ("p".equalsIgnoreCase(choice)) {
-	                if (current.prev != null) {
-	                    current = current.prev;
+	                if (current.previous != null) {
+	                    current = current.previous;
 	                } else {
 	                    System.out.println("No more vendors in this direction.");
 	                }
@@ -453,7 +456,7 @@ public class Market {
 	    
 	    
 	    
-	    public boolean addProduct() {
+	    public static boolean addProduct() {
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 	        Product product = new Product();
@@ -515,6 +518,286 @@ public class Market {
 
 	        return true;
 	    }
+	    
+	    public static boolean updateProduct() {
+	        File productFile = new File("products.bin");
+	        File tempFile = new File("temp.bin");
+	        boolean found = false;
+
+	        if (!productFile.exists()) {
+	            System.out.println("Error: Product file not found.");
+	            return false;
+	        }
+
+	        try (ObjectInputStream productInput = new ObjectInputStream(new FileInputStream(productFile));
+	             ObjectOutputStream tempOutput = new ObjectOutputStream(new FileOutputStream(tempFile))) {
+
+	            Scanner scanner = new Scanner(System.in);
+	            System.out.print("Enter Product Name to update: ");
+	            String productName = scanner.nextLine();
+
+	            while (true) {
+	                try {
+	                    Product product = (Product) productInput.readObject(); // Read product from file
+	                    if (product.getProductName().equals(productName)) {
+	                        found = true;
+	                        // Receive new product information
+	                        System.out.print("Enter new Product Name: ");
+	                        product.setProductName(scanner.nextLine());
+	                        System.out.print("Enter new Product Price: ");
+	                        product.setPrice(scanner.nextFloat());
+	                        System.out.print("Enter new Product Quantity: ");
+	                        product.setQuantity(scanner.nextInt());
+	                        scanner.nextLine(); // Consume newline
+	                        System.out.print("Enter new Product Season: ");
+	                        product.setSeason(scanner.nextLine());
+	                    }
+	                    tempOutput.writeObject(product); // Write product to temporary file
+	                } catch (EOFException e) {
+	                    break; // End of file reached
+	                }
+	            }
+
+	            if (!found) {
+	                System.out.println("Product with name " + productName + " not found.");
+	                tempFile.delete(); // Delete temporary file
+	            } else {
+	                if (productFile.delete() && tempFile.renameTo(productFile)) {
+	                    System.out.println("Product updated successfully!");
+	                } else {
+	                    System.out.println("Error: Could not update product file.");
+	                }
+	            }
+
+	        } catch (IOException | ClassNotFoundException e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+
+	        System.out.println("Press Enter to continue...");
+	        new Scanner(System.in).nextLine(); // Pause for user input
+
+	        return true;
+	    }
+
+	    public static boolean deleteProduct() {
+	        File productFile = new File("products.bin");
+	        File tempFile = new File("temp.bin");
+
+	        if (!productFile.exists()) {
+	            System.out.println("Error opening product file.");
+	            return false;
+	        }
+
+	        try (
+	            FileInputStream fis = new FileInputStream(productFile);
+	            ObjectInputStream input = new ObjectInputStream(fis);
+	            FileOutputStream fos = new FileOutputStream(tempFile);
+	            ObjectOutputStream output = new ObjectOutputStream(fos)
+	        ) {
+	            System.out.print("Enter Product Name to delete: ");
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+	            String productName = reader.readLine();
+
+	            boolean found = false;
+
+	            while (true) {
+	                try {
+	                    Product product = (Product) input.readObject();
+	                    if (product.getProductName().equals(productName)) {
+	                        found = true;
+	                        System.out.println("Product with name " + productName + " deleted successfully!");
+	                        continue; // Skip product to delete
+	                    }
+	                    output.writeObject(product); // Write other products to temp file
+	                } catch (EOFException e) {
+	                    break; // End of file reached
+	                }
+	            }
+
+	            if (!found) {
+	                System.out.println("Product with name " + productName + " not found.");
+	                tempFile.delete(); // Delete temporary file
+	            } else {
+	                if (!productFile.delete()) {
+	                    System.out.println("Error deleting original product file.");
+	                    return false;
+	                }
+	                if (!tempFile.renameTo(productFile)) {
+	                    System.out.println("Error renaming temporary file to product file.");
+	                    return false;
+	                }
+	            }
+	        } catch (IOException | ClassNotFoundException e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+
+	        System.out.println("Press Enter to continue...");
+	        try {
+	            System.in.read();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+
+	        return true;
+	    }
+
+	    public static boolean listingOfLocalVendorsandProducts() {
+	        File productFile = new File("products.bin");
+	        File vendorFile = new File("vendor.bin");
+
+	        if (!productFile.exists()) {
+	            System.out.println("Error opening product file.");
+	            return false;
+	        }
+
+	        if (!vendorFile.exists()) {
+	            System.out.println("Error opening vendor file.");
+	            return false;
+	        }
+
+	        System.out.println("\n--- Listing All Vendors and Their Products ---\n");
+
+	        try (
+	            FileInputStream vendorFis = new FileInputStream(vendorFile);
+	            ObjectInputStream vendorInput = new ObjectInputStream(vendorFis);
+	            FileInputStream productFis = new FileInputStream(productFile);
+	            ObjectInputStream productInput = new ObjectInputStream(productFis);
+	        ) {
+	            Scanner scanner = new Scanner(System.in);
+	            boolean vendorFound = false;
+
+	            while (true) {
+	                Vendor vendor;
+	                try {
+	                    vendor = (Vendor) vendorInput.readObject();
+	                } catch (EOFException e) {
+	                    break; // End of file
+	                }
+
+	                System.out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
+	                System.out.println("--------------------------");
+	                System.out.println("Select Collision Resolution Strategy for Vendor " + vendor.getId() + ":");
+	                System.out.println("1. Linear Probing");
+	                System.out.println("2. Quadratic Probing");
+	                System.out.println("3. Double Hashing");
+	                System.out.println("4. Linear Quotient");
+	                System.out.println("5. Progressive Overflow");
+	                System.out.println("6. Use of Buckets");
+	                System.out.println("7. Brent's Method");
+	                System.out.println("8. Exit");
+	                int strategy = scanner.nextInt();
+
+	                if (strategy == 8) {
+	                    System.out.println("Exiting the vendor list.");
+	                    return true;
+	                }
+
+	                productFis.getChannel().position(0); // Reset file to start
+	                boolean productFound = false;
+
+	                switch (strategy) {
+	                    case 1:
+	                        productFound = linearProbing(productInput, vendor.getId());
+	                        break;
+	                    case 2:
+	                        productFound = quadraticProbing(productInput, vendor.getId());
+	                        break;
+	                    case 3:
+	                        productFound = doubleHashing(productInput, vendor.getId());
+	                        break;
+	                    case 4:
+	                        productFound = linearQuotient(productInput, vendor.getId());
+	                        break;
+	                    case 5:
+	                        productFound = progressiveOverflow(productInput, vendor.getId());
+	                        break;
+	                    case 6:
+	                        productFound = useOfBuckets(productInput, vendor.getId());
+	                        break;
+	                    case 7:
+	                        productFound = brentsMethod(productInput, vendor.getId());
+	                        break;
+	                    default:
+	                        System.out.println("Invalid strategy selected.");
+	                        break;
+	                }
+
+	                if (!productFound) {
+	                    System.out.println("No products available for this vendor.");
+	                }
+	                vendorFound = true;
+	            }
+
+	            if (!vendorFound) {
+	                System.out.println("No products found for any vendor.");
+	            }
+	        } catch (IOException | ClassNotFoundException e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+
+	        System.out.println("\nPress Enter to return to menu...");
+	        try {
+	            System.in.read();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return true;
+	    }
+	    
+	    public static boolean linearProbing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        boolean found = false;
+	        while (true) {
+	            try {
+	                Product product = (Product) input.readObject();
+	                if (product.getVendorId() == vendorId) {
+	                    printProductDetails(product);
+	                    found = true;
+	                }
+	            } catch (EOFException e) {
+	                break; // End of file
+	            }
+	        }
+	        return found;
+	    }
+
+	    public static boolean quadraticProbing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static boolean doubleHashing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static boolean linearQuotient(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static boolean progressiveOverflow(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static boolean useOfBuckets(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static boolean brentsMethod(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+	        // Similar to linearProbing
+	        return linearProbing(input, vendorId);
+	    }
+
+	    public static void printProductDetails(Product product) {
+	        System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	    }
+
 	    
 	    
 	}
