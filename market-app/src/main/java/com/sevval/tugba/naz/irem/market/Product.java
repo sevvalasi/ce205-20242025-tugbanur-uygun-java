@@ -5,22 +5,22 @@ import java.io.*;
 public class Product {
     private int vendorId;          // Ürünü satan satıcının ID'si
     private String productName;    // Ürün adı
-    private float price;           // Ürün fiyatı
+    private double price;           // Ürün fiyatı
     private int quantity;          // Ürün miktarı
     private String season;         // Ürün sezon bilgisi
 
     // --- Constructor ---
     public Product() {}
 
-    public Product(int vendorId, String productName, float price, int quantity, String season) {
+    public Product(int vendorId, String productName, double price, int quantity, String season) {
         this.vendorId = vendorId;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
         this.season = season;
     }
-
-    // --- Getter ve Setter Metotları ---
+   
+	// --- Getter ve Setter Metotları ---
     public int getVendorId() {
         return vendorId;
     }
@@ -37,7 +37,7 @@ public class Product {
         this.productName = productName;
     }
 
-    public float getPrice() {
+    public double getPrice() {
         return price;
     }
 
@@ -65,7 +65,7 @@ public class Product {
     public void writeToFile(RandomAccessFile file) throws IOException {
         file.writeInt(vendorId);                  // vendorId yaz
         file.writeUTF(productName);               // productName yaz
-        file.writeFloat(price);                   // price yaz
+        file.writeDouble(price);                   // price yaz
         file.writeInt(quantity);                  // quantity yaz
         file.writeUTF(season);                    // season yaz
     }
