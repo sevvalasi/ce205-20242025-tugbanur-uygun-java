@@ -31,9 +31,13 @@ import java.io.PrintStream;
 import java.util.Random;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -1051,7 +1055,429 @@ public class Market {
 	        return false; // Placeholder for actual search logic
 	    }
 	    
+	    
+	    
+	    
+	    public static boolean marketHoursAndLocations() {
+	        Scanner scanner = new Scanner(System.in);
+	        int choice;
+
+	        do {
+	            System.out.println("==========================================");
+	            System.out.println("|      Market Hours and Locations        |");
+	            System.out.println("==========================================");
+	            System.out.println("| 1. Add Working Hours and Location      |");
+	            System.out.println("| 2. Update Market Hours and Location    |");
+	            System.out.println("| 3. View Market Hours and Locations     |");
+	            System.out.println("| 0. Return to Main Menu                 |");
+	            System.out.println("==========================================");
+	            System.out.print("Choose an option: ");
+
+	            if (!scanner.hasNextInt()) {
+	                System.out.println("Invalid input. Please enter a valid option.");
+	                scanner.next(); // Clear invalid input
+	                choice = -1;
+	                continue;
+	            }
+
+	            choice = scanner.nextInt();
+	            scanner.nextLine(); // Consume newline character
+
+	            switch (choice) {
+	                case 1:
+	                    addMarketHoursAndLocation();
+	                    break;
+	                case 2:
+	                    //updateMarketHoursAndLocation();
+	                    break;
+	                case 3:
+	                 //   displayMarketHoursAndLocations();
+	                    break;
+	                case 0:
+	                    System.out.println("Returning to main menu...");
+	                    break;
+	                default:
+	                    System.out.println("Invalid option. Please try again.");
+	                    break;
+	            }
+	        } while (choice != 0);
+
+	        return true;
+	    }
+
+	    
+	    
+	    public static boolean addMarketHoursAndLocation() {
+	        try (FileOutputStream fos = new FileOutputStream("marketHours.bin", true);
+	             ObjectOutputStream oos = new ObjectOutputStream(fos);
+	             FileInputStream fis = new FileInputStream("vendor.bin");
+	             ObjectInputStream ois = new ObjectInputStream(fis)) {
+
+	            Scanner scanner = new Scanner(System.in);
+	            MarketHours market = new MarketHours();
+	            boolean found = false;
+
+	            System.out.print("Enter Market ID: ");
+	            while (!scanner.hasNextInt()) {
+	                System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                scanner.next(); // Clear invalid input
+	            }
+	            market.setId(scanner.nextInt());
+	            scanner.nextLine(); // Clear the buffer
+
+	            // Read vendors from the file and check for the given Market ID
+	            List<Vendor> vendors = new ArrayList<>();
+	            try {
+	                while (true) {
+	                    Vendor vendor = (Vendor) ois.readObject();
+	                    vendors.add(vendor);
+	                    if (vendor.getId() == market.getId()) { // getId() metodu ile vendorId'ye erişiyoruz
+	                        found = true;
+	                        break;
+	                    }
+	                }
+	            } catch (EOFException e) {
+	                // End of file reached
+	            }
+
+	            if (!found) {
+	                System.out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
+	                while (!found) {
+	                    System.out.print("Enter Market ID: ");
+	                    while (!scanner.hasNextInt()) {
+	                        System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                        scanner.next(); // Clear invalid input
+	                    }
+	                    market.setId(scanner.nextInt());
+	                    scanner.nextLine(); // Clear the buffer
+
+	                    for (Vendor vendor : vendors) {
+	                    	if (vendor.getId() == market.getId()) { // getId() metodu ile vendorId'ye erişiyoruz
+	                    	    found = true;
+	                    	    break;
+	                    	}
+	                    }
+
+	                    if (!found) {
+	                        System.out.println("Invalid Market ID. Please try again.");
+	                    }
+	                }
+	            }
+
+	            MarketHours Market = new MarketHours(); 
+	            System.out.print("Enter Day (e.g., Monday): ");
+	            market.setDay(scanner.nextLine());
+	            while (!validateDay(market.getDay())) {
+	                System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+	                market.setDay(scanner.nextLine());
+	            }
+
+	            System.out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
+	            market.setHours(scanner.nextLine());
+	            while (!validateWorkingHours(market.getHours())) {
+	                System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+	                market.setHours(scanner.nextLine());
+	            }
+
+	            System.out.print("Enter Location: ");
+	            market.setLocation(scanner.nextLine());
+
+	            // Write market hours to the file
+	            oos.writeObject(market);
+	            System.out.println("Market hours and location added successfully!");
+
+	            return true;
+	        } catch (IOException | ClassNotFoundException e) {
+	            System.out.println("Error: " + e.getMessage());
+	            e.printStackTrace();
+	            return false;
+	        }
+	    }
+
+	    public static boolean validateDay(String day) {
+	        String[] validDays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
+	        for (String validDay : validDays) {
+	            if (validDay.equalsIgnoreCase(day)) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    }
+
+	    private static boolean validateWorkingHours(String hours) {
+	        // Validate format and logic (e.g., "09:00 - 18:00")
+	        String[] parts = hours.split(" - ");
+	        if (parts.length != 2) {
+	            return false;
+	        }
+
+	        String[] startTime = parts[0].split(":");
+	        String[] endTime = parts[1].split(":");
+	        if (startTime.length != 2 || endTime.length != 2) {
+	            return false;
+	        }
+
+	        try {
+	            int startHour = Integer.parseInt(startTime[0]);
+	            int startMinute = Integer.parseInt(startTime[1]);
+	            int endHour = Integer.parseInt(endTime[0]);
+	           int endMinute = Integer.parseInt(endTime[1]);
+
+	            if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
+	                return false;
+	            }
+	            if (startMinute < 0 || startMinute > 59 || endMinute < 0 || endMinute > 59) {
+	                return false;
+	            }
+	            if (startHour > endHour || (startHour == endHour && startMinute >= endMinute)) {
+	                return false;
+	            }
+
+	            return true;
+	        } catch (NumberFormatException e) {
+	            return false;
+	        }
+	    }
+
+	    public boolean updateMarketHoursAndLocation() {
+	        Scanner scanner = new Scanner(System.in);
+
+	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
+	            System.out.print("Enter Market ID to update: ");
+	            int marketId;
+	            while (!scanner.hasNextInt()) {
+	                System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                scanner.next(); // Clear invalid input
+	            }
+	            marketId = scanner.nextInt();
+	            scanner.nextLine(); // Clear the buffer
+
+	            boolean found = false;
+	            while (file.getFilePointer() < file.length()) {
+	                long recordPosition = file.getFilePointer(); // Remember the record position
+	                MarketHours market = new MarketHours();
+	                market.readFromFile(file);
+
+	                if (market.getId() == marketId) {
+	                    found = true;
+
+	                    System.out.print("Enter new Day (e.g., Monday): ");
+	                    String day = scanner.nextLine();
+	                    while (!validateDay(day)) {
+	                        System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+	                        day = scanner.nextLine();
+	                    }
+
+	                    System.out.print("Enter new Working Hours (e.g., 09:00 - 18:00): ");
+	                    String hours = scanner.nextLine();
+	                    while (!validateWorkingHours(hours)) {
+	                        System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+	                        hours = scanner.nextLine();
+	                    }
+
+	                    System.out.print("Enter new Location: ");
+	                    String location = scanner.nextLine();
+
+	                    // Update the market object
+	                    market.setDay(day);
+	                    market.setHours(hours);
+	                    market.setLocation(location);
+
+	                    // Write updated market hours back to the file
+	                    file.seek(recordPosition);
+	                    market.writeToFile(file);
+
+	                    System.out.println("Market hours and location updated successfully!");
+	                    break;
+	                }
+	            }
+
+	            if (!found) {
+	                System.out.printf("Market ID %d not found.%n", marketId);
+	            }
+	        } catch (IOException e) {
+	            System.out.println("Error accessing the market hours file: " + e.getMessage());
+	            return false;
+	        }
+
+	        return true;
+	    }
+    
+	    public static boolean displayMarketHoursAndLocations() {
+    try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("marketHours.bin"))) {
+        MarketHoursNode head = null;
+
+        // Read all MarketHours from the file and insert into the XOR linked list
+        while (true) {
+            try {
+                MarketHours market = (MarketHours) ois.readObject();
+                head = insertXORList(head, market);
+            } catch (EOFException e) {
+                break;
+            }
+        }
+
+        // Traverse and display the XOR linked list grouped by ID
+        traverseXORListGroupedByID(head);
+        return true;
+
+    } catch (IOException | ClassNotFoundException e) {
+        System.out.println("Error opening market hours file.");
+        return false;
+    }
 }
+
+	 // XOR bağlantısını simüle etmek için bir HashMap kullanıyoruz
+	    private static final Map<Integer, MarketHoursNode> xorMap = new HashMap<>();
+
+	    // XOR işlemini gerçekleştiren fonksiyon
+	    public static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
+	        int aAddress = (a != null) ? System.identityHashCode(a) : 0;
+	        int bAddress = (b != null) ? System.identityHashCode(b) : 0;
+
+	        int xorKey = aAddress ^ bAddress; // XOR işleminden elde edilen anahtar
+	        return xorMap.get(xorKey); // XOR sonucu ile eşleşen düğümü döndür
+	    }
+
+	    // XOR Map'e düğüm ekleme
+	    public static void addToXorMap(MarketHoursNode node) {
+	        xorMap.put(System.identityHashCode(node), node);
+	    }
+
+	    // XOR bağlantı listesine düğüm ekleyen fonksiyon
+	    public static MarketHoursNode insertXORList(MarketHoursNode head, MarketHours data) {
+	        MarketHoursNode newNode = new MarketHoursNode(data);
+	        addToXorMap(newNode); // Yeni düğümü XOR Map'e ekle
+
+	        if (head == null) {
+	            return newNode; // Eğer liste boşsa, yeni düğüm baş düğüm olur
+	        }
+
+	        MarketHoursNode prev = null;
+	        MarketHoursNode curr = head;
+
+	        // Düğümü uygun yerine yerleştirmek için listeyi dolaşıyoruz
+	        while (curr != null && data.getId() > curr.data.getId()) {
+	            MarketHoursNode next = xorFunction(prev, curr.xorPtr);
+	            prev = curr;
+	            curr = next;
+	        }
+
+	        // Yeni düğümü yerleştiriyoruz
+	        newNode.xorPtr = xorFunction(prev, curr);
+
+	        if (prev != null) {
+	            prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, curr), newNode);
+	        }
+
+	        if (curr != null) {
+	            curr.xorPtr = xorFunction(newNode, xorFunction(curr.xorPtr, prev));
+	        }
+
+	        // Baş düğüm değişmediyse mevcut baş düğümü döndür
+	        return (prev == null) ? newNode : head;
+	    }
+
+	    public static void traverseXORListGroupedByID(MarketHoursNode head) {
+    MarketHoursNode curr = head;
+    MarketHoursNode prev = null;
+    MarketHoursNode next;
+    Scanner scanner = new Scanner(System.in);
+
+    while (curr != null) {
+        int currentID = curr.data.getId();
+
+        // Clear the screen (use "cls" for Windows, "clear" for Linux/Mac)
+        
+
+        // Display all entries with the same ID
+        System.out.println("--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
+        System.out.println("ID: " + currentID);
+        while (curr != null && curr.data.getId() == currentID) {
+            System.out.printf("  Day: %s, Hours: %s, Location: %s%n",
+                    curr.data.getDay(), curr.data.getHours(), curr.data.getLocation());
+            next = xorFunction(prev, curr.xorPtr);
+            prev = curr;
+            curr = next;
+        }
+
+        // User interaction for next or previous group
+        if (curr != null || prev != null) {
+            System.out.print("Enter your choice (n/p/q): ");
+            char choice = scanner.next().charAt(0);
+
+            if (choice == 'n') {
+                // Continue to next group (already set in curr)
+            } else if (choice == 'p') {
+                // Traverse back to the start of the previous ID group
+                while (prev != null && prev.data.getId() == currentID) {
+                    next = xorFunction(prev.xorPtr, curr);
+                    curr = prev;
+                    prev = next;
+                }
+
+                // Now go further back to reach the start of the previous group
+                if (prev != null) {
+                    currentID = prev.data.getId();
+                    while (prev != null && prev.data.getId() == currentID) {
+                        next = xorFunction(prev.xorPtr, curr);
+                        curr = prev;
+                        prev = next;
+                    }
+                    // After the above loop, 'curr' will be at the start of the previous group
+                } else {
+                    System.out.println("You have reached the beginning of the list.");
+                    curr = head;  // Reset to the head
+                    prev = null;
+                }
+            } else if (choice == 'q') {
+                break;
+            } else {
+                System.out.println("Invalid choice. Please enter 'n', 'p', or 'q'.");
+            }
+        } else {
+            System.out.println("You have reached the end of the list.");
+        }
+    }
+}
+
+// XOR Function for nodes
+	 // XOR işlemini gerçekleştiren fonksiyon
+	    private MarketHoursNode xor(MarketHoursNode a, MarketHoursNode b) {
+	        if (a == null && b == null) {
+	            return null; // Her iki düğüm de null ise null döndür
+	        }
+	        if (a == null) {
+	            return b; // Birinci düğüm null ise ikinci düğümü döndür
+	        }
+	        if (b == null) {
+	            return a; // İkinci düğüm null ise birinci düğümü döndür
+	        }
+
+	        // XOR Map kullanarak sonuç düğümü döndür
+	        int xorKey = System.identityHashCode(a) ^ System.identityHashCode(b); // Adres XOR işlemi
+	        return xorMap.get(xorKey); // XOR sonucu eşleşen düğümü döndür
+	    }
+
+    
+}
+
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+
 	    
 	
 
