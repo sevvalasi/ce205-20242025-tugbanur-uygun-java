@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,13 +62,16 @@ public class Market {
 
 
 	        do {
-	            out.println("\n--- Main Menu ---");
-	            out.println("1. Listing of Local Vendors");
-	            out.println("2. Listing of Local Products");
-	            out.println("3. Price Comparison");
-	            out.println("4. Market Hours and Locations");
-	            out.println("5. Search Products or Enter Keywords");
-	            out.println("0. Exit");
+	        	out.println("==========================================\n");
+	            out.println("|               Main Menu                |\n");
+	            out.println("==========================================\n");
+	            out.println("| 1. Listing of Local Vendors            |\n");
+	            out.println("| 2. Listing of Local Products           |\n");
+	            out.println("| 3. Price Comparison                    |\n");
+	            out.println("| 4. Market Hours and Locations          |\n");
+	            out.println("| 5. Search Products or Enter Keywords   |\n");
+	            out.println("| 0. Exit                                |\n");
+	            out.println("==========================================\n");
 	            out.print("Choose an option: ");
 	            choice = scanner.nextInt();
 
@@ -103,12 +107,15 @@ public class Market {
 	        int choice;
 
 	        do {
-	            out.println("\n--- Listing of Local Vendors and Products ---");
-	            out.println("1. Add Vendor");
-	            out.println("2. Update Vendor");
-	            out.println("3. Delete Vendor");
-	            out.println("4. List Vendors");
-	            out.println("0. Return to Main Menu");
+	        	 out.println("==========================================\n");
+	        	 out.println("|     Listing of Local Vendors           |\n");
+	        	 out.println("==========================================\n");
+	        	 out.println("| 1. Add Vendor                          |\n");
+	        	 out.println("| 2. Update Vendor                       |\n");
+	        	 out.println("| 3. Delete Vendor                       |\n");
+	        	 out.println("| 4. List Vendors                        |\n");
+	        	 out.println("| 0. Return to Main Menu                 |\n");
+	        	 out.println("==========================================\n");
 	            out.print("Choose an option: ");
 	            choice = getInput();
 	        
@@ -141,12 +148,15 @@ public class Market {
 	        int choice;
 
 	        do {
-	            out.println("\n--- List All Products ---");
-	            out.println("1. Add Product");
-	            out.println("2. Update Product");
-	            out.println("3. Delete Product");
-	            out.println("4. Listing of Local Products");
-	            out.println("0. Return to Main Menu");
+	        	 out.println("==========================================\n");
+	        	 out.println("|           List All Products            |\n");
+	        	 out.println("==========================================\n");
+	        	 out.println("| 1. Add Product                         |\n");
+	        	 out.println("| 2. Update Product                      |\n");
+	        	 out.println("| 3. Delete Product                      |\n");
+	        	 out.println("| 4. Listing of Local Products           |\n");
+	        	 out.println("| 0. Return to Main Menu                 |\n");
+	        	 out.println("==========================================\n");
 	            out.print("Choose an option: ");
 
 	            choice = getInput();
@@ -798,10 +808,250 @@ public class Market {
 	                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
 	    }
 
+	    public static class PriceComparison {
+
+	        private static Scanner scanner = new Scanner(System.in);
+
+	        public static void clearScreen() {
+	            // Terminali temizlemek için basit bir yöntem. İşletim sistemine bağlı olarak değişiklik gösterebilir.
+	            System.out.print("\033[H\033[2J");
+	            System.out.flush();
+	        }
+
+	        public static int getInput() {
+	            // Kullanıcıdan bir tamsayı değeri alınması
+	            int input = scanner.nextInt();
+	            scanner.nextLine(); // Enter tuşundan sonra kalan newline karakterini temizler.
+	            return input;
+	        }
+
+	        public static int selectProduct(StringBuffer selectedProductName) {
+	            out.print("Enter the product name to select: ");
+	            String input = scanner.nextLine();
+	            if (!input.isEmpty()) {
+	                selectedProductName.setLength(0); // Önceki değeri temizle
+	                selectedProductName.append(input);
+	                return 0; // Başarılı
+	            }
+	            return 1; // Başarısız
+	        }
+
+	        public static void comparePricesByName(String productName) {
+	            // Fiyat karşılaştırma işlemleri burada yapılacaktır.
+	            out.printf("Comparing prices for: %s\n", productName);
+	            // Ürün fiyatlarını karşılaştırma işlemi
+	        }
+
+	        public static boolean priceComparison() {
+	            int choice;
+	            StringBuffer selectedProductName = new StringBuffer();
+
+	            do {
+	                clearScreen();
+	                out.println("==========================================");
+	                out.println("|            Price Comparison            |");
+	                out.println("==========================================");
+	                out.println("| 1. Select Product                      |");
+	                out.println("| 2. Compare Prices                      |");
+	                out.println("| 0. Return to Main Menu                 |");
+	                out.println("==========================================");
+	                out.print("Choose an option: ");
+	                choice = getInput();
+
+	                switch (choice) {
+	                    case 1:
+	                        if (selectProduct(selectedProductName) == 0) {
+	                            out.printf("Product '%s' selected.\n", selectedProductName.toString());
+	                        } else {
+	                            out.println("Product selection failed.");
+	                        }
+	                        break;
+	                    case 2:
+	                        if (selectedProductName.length() > 0) {
+	                            comparePricesByName(selectedProductName.toString());
+	                        } else {
+	                            out.println("No product selected. Please select a product first.");
+	                        }
+	                        break;
+	                    case 0:
+	                        out.println("Returning to main menu...");
+	                        break;
+	                    default:
+	                        out.println("Invalid option. Please try again.");
+	                        break;
+	                }
+
+	                out.println("Press Enter to continue...");
+	                scanner.nextLine(); // Kullanıcıdan Enter tuşuna basmasını bekler
+
+	            } while (choice != 0);
+
+	            return true;
+	        }
+
+	        public static void main(String[] args) {
+	            priceComparison();
+	        }
+	    }
+
+	    public static boolean selectProduct() {
+	        Scanner scanner = new Scanner(System.in);
+	        File productFile = new File("products.bin");
+	        try {
+	            Scanner fileScanner = new Scanner(productFile);
+	            out.println("\n--- Available Products ---");
+	            int productCount = 0;
+
+	            while (fileScanner.hasNextLine()) {
+	                String line = fileScanner.nextLine();
+	                String[] details = line.split(", ");
+	                Product product = new Product();
+	                out.printf("Name: %s, Price: %.2f, Quantity: %d, Season: %s, Vendor ID: %d\n", product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason(), product.getVendorId());
+	                productCount++;
+	            }
+	            fileScanner.close();
+
+	            if (productCount == 0) {
+	                out.println("No products available.");
+	                return false;
+	            }
+
+	            out.println("Enter the Product Name to select: ");
+	            String selectedProductName = scanner.nextLine();
+
+	            // Check if the product has been selected again
+	            fileScanner = new Scanner(productFile);
+	            boolean found = false;
+	            while (fileScanner.hasNextLine()) {
+	                String line = fileScanner.nextLine();
+	                String[] details = line.split(", ");
+	                if (details[0].equals(selectedProductName)) {
+	                    out.printf("Selected Product: %s, Price: %.2f\n", details[0], Double.parseDouble(details[1]));
+	                    found = true;
+	                    break;
+	                }
+	            }
+
+	            fileScanner.close();
+
+	            if (!found) {
+	                out.printf("Product with Name '%s' not found.\n", selectedProductName);
+	                return false;
+	            }
+
+	        } catch (FileNotFoundException e) {
+	            out.println("Error opening product file.");
+	            return false;
+	        }
+
+	        return true;
+	    }
+
+	    public static void main(String[] args) {
+	        if (selectProduct()) {
+	            out.println("Product selection successful.");
+	        } else {
+	            out.println("Product selection failed.");
+	        }
+	    }
 	    
+	    public boolean comparePricesByName(String productName) {
+	        File productFile;
+	        Product[] products = new Product[100];
+	        int productCount = 0;
+	        boolean found = false;
+
+	        try {
+	            productFile = new File("products.bin");
+	            Scanner scanner = new Scanner(productFile);
+	            while (scanner.hasNextLine()) {
+	                String line = scanner.nextLine();
+	                String[] details = line.split(",");
+	                Product product = new Product(Integer.parseInt(details[0]), details[1], Double.parseDouble(details[2]), Integer.parseInt(details[3]), details[4]);
+	                if (product.getProductName().equals(productName)) {
+	                    products[productCount++] = product;
+	                    found = true;
+	                }
+	            }
+	            scanner.close();
+	        } catch (FileNotFoundException e) {
+	            System.out.println("Error opening product file.");
+	            return false;
+	        }
+
+	        if (!found) {
+	            System.out.println("No prices found for Product Name '" + productName + "'.");
+	            return false;
+	        }
+
+	        // Sort products by price (using heap sort)
+	        heapSort(products, productCount);
+
+	        // Print sorted products
+	        System.out.println("\n--- Price Comparison for Product Name '" + productName + "' (Sorted by Price) ---");
+	        for (int i = 0; i < productCount; i++) {
+	            System.out.println("Vendor ID: " + products[i].getVendorId() + ", Price: " + String.format("%.2f", products[i].getPrice()));
+	        }
+
+	        System.out.println("\nLowest Price: " + String.format("%.2f", products[0].getPrice()));
+	        System.out.println("Highest Price: " + String.format("%.2f", products[productCount - 1].getPrice()));
+	        return true;
+	    }
+
+	    private void heapSort(Product[] arr, int n) {
+	        for (int i = n / 2 - 1; i >= 0; i--) {
+	            heapify(arr, n, i);
+	        }
+
+	        for (int i = n - 1; i >= 0; i--) {
+	            Product temp = arr[0];
+	            arr[0] = arr[i];
+	            arr[i] = temp;
+
+	            heapify(arr, i, 0);
+	        }
+	    }
+
+	    private void heapify(Product[] arr, int n, int i) {
+	        int largest = i;
+	        int left = 2 * i + 1;
+	        int right = 2 * i + 2;
+
+	        if (left < n && arr[left].getPrice() > arr[largest].getPrice())
+	            largest = left;
+
+	        if (right < n && arr[right].getPrice() > arr[largest].getPrice())
+	            largest = right;
+
+	        if (largest != i) {
+	            Product swap = arr[i];
+	            arr[i] = arr[largest];
+	            arr[largest] = swap;
+
+	            heapify(arr, n, largest);
+	        }
 	    
-	}
+	    }
+
+	    public BPlusTreeNode createNode(boolean isLeaf) {
+	        BPlusTreeNode newNode = new BPlusTreeNode(isLeaf);
+	        newNode.setIsLeaf(isLeaf);
+	        newNode.setKeyCount(0);
+	        newNode.setNext(null);
+	        return newNode;
+	    }
+
+	    public BPlusTreeNode insert(BPlusTreeNode root, int key) {
+	        // Insert logic for B+ Tree here (similar to the provided C function)
+	        return null; // Placeholder for actual insert logic
+	    }
+
+	    public boolean search(BPlusTreeNode root, int key) {
+	        // Search logic for B+ Tree here (similar to the provided C function)
+	        return false; // Placeholder for actual search logic
+	    }
 	    
+}
 	    
 	
 
