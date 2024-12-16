@@ -18,6 +18,7 @@ import static java.lang.System.out;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,13 +60,77 @@ public class Market {
         this.scanner = scanner;
         this.out = out;
     }
-	
+    
+    private boolean isAuthenticated = false;
+    
+    private static void clearScreen() {
+        // This is just a placeholder for clear screen in Java since it's platform-dependent
+        out.print("\033[H\033[2J");
+        out.flush();
+    }
+    
+    private static int getInput() {
+        while (!scanner.hasNextInt()) {
+            scanner.next();
+            out.println("Invalid input. Please enter a valid number.");
+        }
+        return scanner.nextInt();
+    }
+
+    
+    public boolean userAuthentication() {
+    	
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
+        do {
+        	clearScreen();
+            out.println("==========================================");
+            out.println("|           User Authentication          |");
+            out.println("==========================================");
+            out.println("| 1. Login                               |");
+            out.println("| 2. Register                            |");
+            out.println("| 3. Guest Mode                          |");
+            out.println("| 4. Exit                                |");
+            out.println("==========================================");
+            out.print("Choose an option: ");
+            choice = getInput();
+
+            switch (choice) {
+                case 1:
+                    if (loginUser()) 
+                	{
+                        mainMenu();
+                    }
+                    break;
+                case 2:
+                    registerUser();
+                   isAuthenticated = true;
+                    break;
+                case 3:
+                    mainMenu();
+                    break;
+                case 4:
+                    out.println("Exiting the program...");
+                    return true;
+                default:
+                    out.println("Invalid option. Please try again.");
+                    scanner.nextLine(); // Buffer'dan kalanı temizlemek için
+                    break;
+            }
+    
+        }     while (choice != 4);
+        
+        return true ; 
+}
+
 	    public static boolean mainMenu() {
 	        Scanner scanner = new Scanner(System.in);
 	        int choice;
 
 
 	        do {
+	        	clearScreen();
 	        	out.println("==========================================\n");
 	            out.println("|               Main Menu                |\n");
 	            out.println("==========================================\n");
@@ -87,13 +152,13 @@ public class Market {
 	                    listingOfLocalProducts();
 	                    break;
 	                case 3:
-	                   // priceComparison();
+	                    //priceComparison();
 	                    break;
 	                case 4:
-	                    //marketHoursAndLocations();
+	                    marketHoursAndLocations();
 	                    break;
 	                case 5:
-	                   // searchProductsOrEnterKeyword();
+	                    searchProductsOrEnterKeyword();
 	                    break;
 	                case 0:
 	                    out.println("Exiting the program...");
@@ -111,6 +176,7 @@ public class Market {
 	        int choice;
 
 	        do {
+	        	clearScreen();
 	        	 out.println("==========================================\n");
 	        	 out.println("|     Listing of Local Vendors           |\n");
 	        	 out.println("==========================================\n");
@@ -152,6 +218,7 @@ public class Market {
 	        int choice;
 
 	        do {
+	        	clearScreen();
 	        	 out.println("==========================================\n");
 	        	 out.println("|           List All Products            |\n");
 	        	 out.println("==========================================\n");
@@ -162,7 +229,6 @@ public class Market {
 	        	 out.println("| 0. Return to Main Menu                 |\n");
 	        	 out.println("==========================================\n");
 	            out.print("Choose an option: ");
-
 	            choice = getInput();
 
 	            switch (choice) {
@@ -190,20 +256,127 @@ public class Market {
 
 	        return true;
 	    }
+		
+		 public static boolean loginUserFromHuffFile(String username, String password) {
+		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "r")) {
+		            while (true) {
+		                try {
+		                    // Read username length and username
+		                    int usernameLength = file.readInt();
+		                    if (usernameLength > 100) {
+		                        out.println("Username length too long, possible data corruption.");
+		                        return false;
+		                    }
+		                    byte[] fileUsername = new byte[usernameLength];
+		                    file.readFully(fileUsername);
+		                    String readUsername = new String(fileUsername);
 
+		                    // Read password length and password
+		                    int passwordLength = file.readInt();
+		                    if (passwordLength > 100) {
+		                        out.println("Password length too long, possible data corruption.");
+		                        return false;
+		                    }
+		                    byte[] filePassword = new byte[passwordLength];
+		                    file.readFully(filePassword);
+		                    String readPassword = new String(filePassword);
 
-
-		public static int getInput() {
-		    try {
-		        return Integer.parseInt(scanner.nextLine().trim());
-		    } catch (NumberFormatException e) {
-		        out.println("Invalid choice! Please enter a valid number:");
-		        return -1; // Geçersiz bir değer döndürmek için
+		                    // Check if the credentials match
+		                    if (username.equals(readUsername) && password.equals(readPassword)) {
+		                        return true;
+		                    }
+		                } catch (EOFException eof) {
+		                    break;  // End of file reached
+		                }
+		            }
+		        } catch (IOException e) {
+		            System.err.println("Error opening file: " + e.getMessage());
+		            return false;
+		        }
+		        return false;
 		    }
-		}
 
+		    public static boolean loginUser() {
+		        Scanner scanner = new Scanner(System.in);
+		        out.print("Username: ");
+		        String username = scanner.nextLine();
+		        out.print("Password: ");
+		        String password = scanner.nextLine();
+
+		        if (loginUserFromHuffFile(username, password)) {
+		            out.printf("Login successful. Welcome! %s.\n", username);
+		            return true;
+		        } else {
+		            out.println("Incorrect username or password.");
+		            return false;
+		        }
+		    }
+
+		    public static boolean saveUserToHuffFile(String username, int passwordHash) {
+		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
+		            file.seek(file.length());  // Move to the end of the file
+		            byte[] usernameBytes = username.getBytes();
+		            file.writeInt(usernameBytes.length);
+		            file.write(usernameBytes);
+		            file.writeInt(passwordHash);
+		            return true;
+		        } catch (IOException e) {
+		            System.err.println("Error opening file: " + e.getMessage());
+		            return false;
+		        }
+		    }
+		    
+		    public static boolean registerUser() {
+		    	clearScreen();
+		        // Getting user information
+		        out.print("Username: ");
+		        String username = scanner.nextLine();
+		        out.print("Password: ");
+		        String password = scanner.nextLine();
+
+		        // Writing user information to a binary file
+		        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("users.bin", true))) {
+		            // Writing the username and password directly as UTF strings for simplicity
+		            dos.writeUTF(username);
+		            dos.writeUTF(password);
+		        } catch (IOException e) {
+		            out.println("The file could not be opened.");
+		            e.printStackTrace();
+		            return false;
+		        }
+
+		        // Save user to .huff file
+		        saveUserToHuffFile(username, password);
+
+		        out.println("Registration successful!");
+		        // Capture Enter key press to proceed
+		        try {
+		            System.in.read();
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		        return true;
+		    }
+
+		    public static boolean saveUserToHuffFile(String username, String password) {
+		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
+		            file.seek(file.length());  // Move to the end of the file
+		            file.writeInt(username.length());
+		            file.write(username.getBytes());
+		            file.writeInt(password.length());
+		            file.write(password.getBytes());
+		            return true;
+		        } catch (IOException e) {
+		            System.err.println("Error opening file: " + e.getMessage());
+		            return false;
+		        }
+		    }
+
+		    
+		    
+		    
 	    public static boolean addVendor() {
-	        Scanner scanner = new Scanner(System.in);
+	    	clearScreen();
 	        File file = new File("vendor.bin");
 	        Random random = new Random();
 
@@ -242,6 +415,7 @@ public class Market {
 	    }
 	    
 	    public static boolean updateVendor() {
+	    	clearScreen();
 	        File file = new File("vendor.bin");
 	        if (!file.exists()) {
 	            out.println("Error: Vendor file not found.");
@@ -298,6 +472,7 @@ public class Market {
 	    }
 	    
 	    public static boolean deleteVendor() {
+	    	clearScreen();
 	        File file = new File("vendor.bin");
 	        File tempFile = new File("temp.bin");
 	        boolean found = false;
@@ -359,9 +534,10 @@ public class Market {
 	    }
 	    
 	    public static boolean listVendors() {
+	    	clearScreen();
 	        File file = new File("vendor.bin");
 	        if (!file.exists()) {
-	            System.out.println("Error opening vendor file.");
+	            out.println("Error opening vendor file.");
 	            return false;
 	        }
 
@@ -388,42 +564,42 @@ public class Market {
 	        DoubleLinkedListNode current = DoubleLinkedList.head;
 
 	        while (current != null) {
-	            System.out.printf("ID: %d, Name: %s%n", current.vendor.getId(), current.vendor.getName());
-	            System.out.print("\n'n' for Next, 'p' for Previous, 's' for Stack traversal, 'q' for Queue traversal, 'x' to Quit: ");
+	            out.printf("ID: %d, Name: %s%n", current.vendor.getId(), current.vendor.getName());
+	            out.print("\n'n' for Next, 'p' for Previous, 's' for Stack traversal, 'q' for Queue traversal, 'x' to Quit: ");
 	            String choice = scanner.nextLine().trim();
 
 	            if ("n".equalsIgnoreCase(choice)) {
 	                if (current.next != null) {
 	                    current = current.next;
 	                } else {
-	                    System.out.println("No more vendors in this direction.");
+	                    out.println("No more vendors in this direction.");
 	                }
 	            } else if ("p".equalsIgnoreCase(choice)) {
 	                if (current.previous != null) {
 	                    current = current.previous;
 	                } else {
-	                    System.out.println("No more vendors in this direction.");
+	                    out.println("No more vendors in this direction.");
 	                }
 	            } else if ("s".equalsIgnoreCase(choice)) {
-	                System.out.println("\n--- Stack Traversal (Last In, First Out) ---");
+	                out.println("\n--- Stack Traversal (Last In, First Out) ---");
 	                while (!vendorStack.isEmpty()) {
 	                    Vendor v = vendorStack.pop();
-	                    System.out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
+	                    out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
 	                }
 	            } else if ("q".equalsIgnoreCase(choice)) {
-	                System.out.println("\n--- Queue Traversal (First In, First Out) ---");
+	                out.println("\n--- Queue Traversal (First In, First Out) ---");
 	                while (!vendorQueue.isEmpty()) {
 	                    Vendor v = vendorQueue.poll();
-	                    System.out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
+	                    out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
 	                }
 	            } else if ("x".equalsIgnoreCase(choice)) {
 	                break;
 	            } else {
-	                System.out.println("Invalid input. Please use 'n', 'p', 's', 'q', or 'x'.");
+	                out.println("Invalid input. Please use 'n', 'p', 's', 'q', or 'x'.");
 	            }
 	        }
 
-	        System.out.println("Returning to menu...");
+	        out.println("Returning to menu...");
 	        return true;
 	    }
 	    
@@ -471,6 +647,7 @@ public class Market {
 	    
 	    
 	    public static boolean addProduct() {
+	    	clearScreen();
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 	        Product product = new Product();
@@ -479,8 +656,6 @@ public class Market {
 	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "rw");
 	             RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r")) {
 
-	            // Get Vendor ID from user
-	            Scanner scanner = new Scanner(System.in);
 	            out.print("Enter Vendor ID for the product: ");
 	            product.setVendorId(scanner.nextInt());
 	            scanner.nextLine(); // Clear buffer
@@ -534,20 +709,21 @@ public class Market {
 	    }
 	    
 	    public static boolean updateProduct() {
+	    	
+	    	clearScreen();
 	        File productFile = new File("products.bin");
 	        File tempFile = new File("temp.bin");
 	        boolean found = false;
 
 	        if (!productFile.exists()) {
-	            System.out.println("Error: Product file not found.");
+	            out.println("Error: Product file not found.");
 	            return false;
 	        }
 
 	        try (ObjectInputStream productInput = new ObjectInputStream(new FileInputStream(productFile));
 	             ObjectOutputStream tempOutput = new ObjectOutputStream(new FileOutputStream(tempFile))) {
 
-	            Scanner scanner = new Scanner(System.in);
-	            System.out.print("Enter Product Name to update: ");
+	            out.print("Enter Product Name to update: ");
 	            String productName = scanner.nextLine();
 
 	            while (true) {
@@ -556,14 +732,14 @@ public class Market {
 	                    if (product.getProductName().equals(productName)) {
 	                        found = true;
 	                        // Receive new product information
-	                        System.out.print("Enter new Product Name: ");
+	                        out.print("Enter new Product Name: ");
 	                        product.setProductName(scanner.nextLine());
-	                        System.out.print("Enter new Product Price: ");
+	                        out.print("Enter new Product Price: ");
 	                        product.setPrice(scanner.nextFloat());
-	                        System.out.print("Enter new Product Quantity: ");
+	                        out.print("Enter new Product Quantity: ");
 	                        product.setQuantity(scanner.nextInt());
 	                        scanner.nextLine(); // Consume newline
-	                        System.out.print("Enter new Product Season: ");
+	                        out.print("Enter new Product Season: ");
 	                        product.setSeason(scanner.nextLine());
 	                    }
 	                    tempOutput.writeObject(product); // Write product to temporary file
@@ -573,13 +749,13 @@ public class Market {
 	            }
 
 	            if (!found) {
-	                System.out.println("Product with name " + productName + " not found.");
+	                out.println("Product with name " + productName + " not found.");
 	                tempFile.delete(); // Delete temporary file
 	            } else {
 	                if (productFile.delete() && tempFile.renameTo(productFile)) {
-	                    System.out.println("Product updated successfully!");
+	                    out.println("Product updated successfully!");
 	                } else {
-	                    System.out.println("Error: Could not update product file.");
+	                    out.println("Error: Could not update product file.");
 	                }
 	            }
 
@@ -588,18 +764,19 @@ public class Market {
 	            return false;
 	        }
 
-	        System.out.println("Press Enter to continue...");
+	        out.println("Press Enter to continue...");
 	        new Scanner(System.in).nextLine(); // Pause for user input
 
 	        return true;
 	    }
 
 	    public static boolean deleteProduct() {
+	    	clearScreen();
 	        File productFile = new File("products.bin");
 	        File tempFile = new File("temp.bin");
 
 	        if (!productFile.exists()) {
-	            System.out.println("Error opening product file.");
+	            out.println("Error opening product file.");
 	            return false;
 	        }
 
@@ -609,7 +786,7 @@ public class Market {
 	            FileOutputStream fos = new FileOutputStream(tempFile);
 	            ObjectOutputStream output = new ObjectOutputStream(fos)
 	        ) {
-	            System.out.print("Enter Product Name to delete: ");
+	            out.print("Enter Product Name to delete: ");
 	            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	            String productName = reader.readLine();
 
@@ -620,7 +797,7 @@ public class Market {
 	                    Product product = (Product) input.readObject();
 	                    if (product.getProductName().equals(productName)) {
 	                        found = true;
-	                        System.out.println("Product with name " + productName + " deleted successfully!");
+	                        out.println("Product with name " + productName + " deleted successfully!");
 	                        continue; // Skip product to delete
 	                    }
 	                    output.writeObject(product); // Write other products to temp file
@@ -630,15 +807,15 @@ public class Market {
 	            }
 
 	            if (!found) {
-	                System.out.println("Product with name " + productName + " not found.");
+	                out.println("Product with name " + productName + " not found.");
 	                tempFile.delete(); // Delete temporary file
 	            } else {
 	                if (!productFile.delete()) {
-	                    System.out.println("Error deleting original product file.");
+	                    out.println("Error deleting original product file.");
 	                    return false;
 	                }
 	                if (!tempFile.renameTo(productFile)) {
-	                    System.out.println("Error renaming temporary file to product file.");
+	                    out.println("Error renaming temporary file to product file.");
 	                    return false;
 	                }
 	            }
@@ -647,7 +824,7 @@ public class Market {
 	            return false;
 	        }
 
-	        System.out.println("Press Enter to continue...");
+	        out.println("Press Enter to continue...");
 	        try {
 	            System.in.read();
 	        } catch (IOException e) {
@@ -658,20 +835,21 @@ public class Market {
 	    }
 
 	    public static boolean listingOfLocalVendorsandProducts() {
+	    	clearScreen();
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 
 	        if (!productFile.exists()) {
-	            System.out.println("Error opening product file.");
+	            out.println("Error opening product file.");
 	            return false;
 	        }
 
 	        if (!vendorFile.exists()) {
-	            System.out.println("Error opening vendor file.");
+	            out.println("Error opening vendor file.");
 	            return false;
 	        }
 
-	        System.out.println("\n--- Listing All Vendors and Their Products ---\n");
+	        out.println("\n--- Listing All Vendors and Their Products ---\n");
 
 	        try (
 	            FileInputStream vendorFis = new FileInputStream(vendorFile);
@@ -679,7 +857,6 @@ public class Market {
 	            FileInputStream productFis = new FileInputStream(productFile);
 	            ObjectInputStream productInput = new ObjectInputStream(productFis);
 	        ) {
-	            Scanner scanner = new Scanner(System.in);
 	            boolean vendorFound = false;
 
 	            while (true) {
@@ -690,21 +867,21 @@ public class Market {
 	                    break; // End of file
 	                }
 
-	                System.out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
-	                System.out.println("--------------------------");
-	                System.out.println("Select Collision Resolution Strategy for Vendor " + vendor.getId() + ":");
-	                System.out.println("1. Linear Probing");
-	                System.out.println("2. Quadratic Probing");
-	                System.out.println("3. Double Hashing");
-	                System.out.println("4. Linear Quotient");
-	                System.out.println("5. Progressive Overflow");
-	                System.out.println("6. Use of Buckets");
-	                System.out.println("7. Brent's Method");
-	                System.out.println("8. Exit");
+	                out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
+	                out.println("--------------------------");
+	                out.println("Select Collision Resolution Strategy for Vendor " + vendor.getId() + ":");
+	                out.println("1. Linear Probing");
+	                out.println("2. Quadratic Probing");
+	                out.println("3. Double Hashing");
+	                out.println("4. Linear Quotient");
+	                out.println("5. Progressive Overflow");
+	                out.println("6. Use of Buckets");
+	                out.println("7. Brent's Method");
+	                out.println("8. Exit");
 	                int strategy = scanner.nextInt();
 
 	                if (strategy == 8) {
-	                    System.out.println("Exiting the vendor list.");
+	                    out.println("Exiting the vendor list.");
 	                    return true;
 	                }
 
@@ -734,25 +911,25 @@ public class Market {
 	                        productFound = brentsMethod(productInput, vendor.getId());
 	                        break;
 	                    default:
-	                        System.out.println("Invalid strategy selected.");
+	                        out.println("Invalid strategy selected.");
 	                        break;
 	                }
 
 	                if (!productFound) {
-	                    System.out.println("No products available for this vendor.");
+	                    out.println("No products available for this vendor.");
 	                }
 	                vendorFound = true;
 	            }
 
 	            if (!vendorFound) {
-	                System.out.println("No products found for any vendor.");
+	                out.println("No products found for any vendor.");
 	            }
 	        } catch (IOException | ClassNotFoundException e) {
 	            e.printStackTrace();
 	            return false;
 	        }
 
-	        System.out.println("\nPress Enter to return to menu...");
+	        out.println("\nPress Enter to return to menu...");
 	        try {
 	            System.in.read();
 	        } catch (IOException e) {
@@ -808,28 +985,12 @@ public class Market {
 	    }
 
 	    public static void printProductDetails(Product product) {
-	        System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	        out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
 	                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
 	    }
 
-	    public static class PriceComparison {
-
-	        private static Scanner scanner = new Scanner(System.in);
-
-	        public static void clearScreen() {
-	            // Terminali temizlemek için basit bir yöntem. İşletim sistemine bağlı olarak değişiklik gösterebilir.
-	            System.out.print("\033[H\033[2J");
-	            System.out.flush();
-	        }
-
-	        public static int getInput() {
-	            // Kullanıcıdan bir tamsayı değeri alınması
-	            int input = scanner.nextInt();
-	            scanner.nextLine(); // Enter tuşundan sonra kalan newline karakterini temizler.
-	            return input;
-	        }
-
 	        public static int selectProduct(StringBuffer selectedProductName) {
+	        	clearScreen();
 	            out.print("Enter the product name to select: ");
 	            String input = scanner.nextLine();
 	            if (!input.isEmpty()) {
@@ -839,13 +1000,7 @@ public class Market {
 	            }
 	            return 1; // Başarısız
 	        }
-
-	        public static void comparePricesByName(String productName) {
-	            // Fiyat karşılaştırma işlemleri burada yapılacaktır.
-	            out.printf("Comparing prices for: %s\n", productName);
-	            // Ürün fiyatlarını karşılaştırma işlemi
-	        }
-
+	        
 	        public static boolean priceComparison() {
 	            int choice;
 	            StringBuffer selectedProductName = new StringBuffer();
@@ -893,13 +1048,9 @@ public class Market {
 	            return true;
 	        }
 
-	        public static void main(String[] args) {
-	            priceComparison();
-	        }
-	    }
-
 	    public static boolean selectProduct() {
-	        Scanner scanner = new Scanner(System.in);
+	        
+	    	clearScreen();
 	        File productFile = new File("products.bin");
 	        try {
 	            Scanner fileScanner = new Scanner(productFile);
@@ -959,7 +1110,9 @@ public class Market {
 	        }
 	    }
 	    
-	    public boolean comparePricesByName(String productName) {
+	    public static boolean comparePricesByName(String productName) {
+	    	
+	    	clearScreen();
 	        File productFile;
 	        Product[] products = new Product[100];
 	        int productCount = 0;
@@ -979,12 +1132,12 @@ public class Market {
 	            }
 	            scanner.close();
 	        } catch (FileNotFoundException e) {
-	            System.out.println("Error opening product file.");
+	            out.println("Error opening product file.");
 	            return false;
 	        }
 
 	        if (!found) {
-	            System.out.println("No prices found for Product Name '" + productName + "'.");
+	            out.println("No prices found for Product Name '" + productName + "'.");
 	            return false;
 	        }
 
@@ -992,17 +1145,17 @@ public class Market {
 	        heapSort(products, productCount);
 
 	        // Print sorted products
-	        System.out.println("\n--- Price Comparison for Product Name '" + productName + "' (Sorted by Price) ---");
+	        out.println("\n--- Price Comparison for Product Name '" + productName + "' (Sorted by Price) ---");
 	        for (int i = 0; i < productCount; i++) {
-	            System.out.println("Vendor ID: " + products[i].getVendorId() + ", Price: " + String.format("%.2f", products[i].getPrice()));
+	            out.println("Vendor ID: " + products[i].getVendorId() + ", Price: " + String.format("%.2f", products[i].getPrice()));
 	        }
 
-	        System.out.println("\nLowest Price: " + String.format("%.2f", products[0].getPrice()));
-	        System.out.println("Highest Price: " + String.format("%.2f", products[productCount - 1].getPrice()));
+	        out.println("\nLowest Price: " + String.format("%.2f", products[0].getPrice()));
+	        out.println("Highest Price: " + String.format("%.2f", products[productCount - 1].getPrice()));
 	        return true;
 	    }
 
-	    private void heapSort(Product[] arr, int n) {
+	    private static void heapSort(Product[] arr, int n) {
 	        for (int i = n / 2 - 1; i >= 0; i--) {
 	            heapify(arr, n, i);
 	        }
@@ -1016,7 +1169,7 @@ public class Market {
 	        }
 	    }
 
-	    private void heapify(Product[] arr, int n, int i) {
+	    private static void heapify(Product[] arr, int n, int i) {
 	        int largest = i;
 	        int left = 2 * i + 1;
 	        int right = 2 * i + 2;
@@ -1059,22 +1212,23 @@ public class Market {
 	    
 	    
 	    public static boolean marketHoursAndLocations() {
-	        Scanner scanner = new Scanner(System.in);
+	        
 	        int choice;
 
 	        do {
-	            System.out.println("==========================================");
-	            System.out.println("|      Market Hours and Locations        |");
-	            System.out.println("==========================================");
-	            System.out.println("| 1. Add Working Hours and Location      |");
-	            System.out.println("| 2. Update Market Hours and Location    |");
-	            System.out.println("| 3. View Market Hours and Locations     |");
-	            System.out.println("| 0. Return to Main Menu                 |");
-	            System.out.println("==========================================");
-	            System.out.print("Choose an option: ");
+	        	clearScreen();
+	            out.println("==========================================");
+	            out.println("|      Market Hours and Locations        |");
+	            out.println("==========================================");
+	            out.println("| 1. Add Working Hours and Location      |");
+	            out.println("| 2. Update Market Hours and Location    |");
+	            out.println("| 3. View Market Hours and Locations     |");
+	            out.println("| 0. Return to Main Menu                 |");
+	            out.println("==========================================");
+	            out.print("Choose an option: ");
 
 	            if (!scanner.hasNextInt()) {
-	                System.out.println("Invalid input. Please enter a valid option.");
+	                out.println("Invalid input. Please enter a valid option.");
 	                scanner.next(); // Clear invalid input
 	                choice = -1;
 	                continue;
@@ -1088,16 +1242,16 @@ public class Market {
 	                    addMarketHoursAndLocation();
 	                    break;
 	                case 2:
-	                    //updateMarketHoursAndLocation();
+	                    updateMarketHoursAndLocation();
 	                    break;
 	                case 3:
-	                 //   displayMarketHoursAndLocations();
+	                    displayMarketHoursAndLocations();
 	                    break;
 	                case 0:
-	                    System.out.println("Returning to main menu...");
+	                	out.println("Returning to main menu...");
 	                    break;
 	                default:
-	                    System.out.println("Invalid option. Please try again.");
+	                    out.println("Invalid option. Please try again.");
 	                    break;
 	            }
 	        } while (choice != 0);
@@ -1108,6 +1262,8 @@ public class Market {
 	    
 	    
 	    public static boolean addMarketHoursAndLocation() {
+	    	
+	    	clearScreen();
 	        try (FileOutputStream fos = new FileOutputStream("marketHours.bin", true);
 	             ObjectOutputStream oos = new ObjectOutputStream(fos);
 	             FileInputStream fis = new FileInputStream("vendor.bin");
@@ -1117,9 +1273,9 @@ public class Market {
 	            MarketHours market = new MarketHours();
 	            boolean found = false;
 
-	            System.out.print("Enter Market ID: ");
+	            out.print("Enter Market ID: ");
 	            while (!scanner.hasNextInt()) {
-	                System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                out.println("Invalid input. Please enter a valid numeric Market ID: ");
 	                scanner.next(); // Clear invalid input
 	            }
 	            market.setId(scanner.nextInt());
@@ -1141,11 +1297,11 @@ public class Market {
 	            }
 
 	            if (!found) {
-	                System.out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
+	                out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
 	                while (!found) {
-	                    System.out.print("Enter Market ID: ");
+	                    out.print("Enter Market ID: ");
 	                    while (!scanner.hasNextInt()) {
-	                        System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                        out.println("Invalid input. Please enter a valid numeric Market ID: ");
 	                        scanner.next(); // Clear invalid input
 	                    }
 	                    market.setId(scanner.nextInt());
@@ -1159,36 +1315,36 @@ public class Market {
 	                    }
 
 	                    if (!found) {
-	                        System.out.println("Invalid Market ID. Please try again.");
+	                        out.println("Invalid Market ID. Please try again.");
 	                    }
 	                }
 	            }
 
 	            MarketHours Market = new MarketHours(); 
-	            System.out.print("Enter Day (e.g., Monday): ");
+	            out.print("Enter Day (e.g., Monday): ");
 	            market.setDay(scanner.nextLine());
 	            while (!validateDay(market.getDay())) {
-	                System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+	                out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
 	                market.setDay(scanner.nextLine());
 	            }
 
-	            System.out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
+	            out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
 	            market.setHours(scanner.nextLine());
 	            while (!validateWorkingHours(market.getHours())) {
-	                System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+	                out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
 	                market.setHours(scanner.nextLine());
 	            }
 
-	            System.out.print("Enter Location: ");
+	            out.print("Enter Location: ");
 	            market.setLocation(scanner.nextLine());
 
 	            // Write market hours to the file
 	            oos.writeObject(market);
-	            System.out.println("Market hours and location added successfully!");
+	            out.println("Market hours and location added successfully!");
 
 	            return true;
 	        } catch (IOException | ClassNotFoundException e) {
-	            System.out.println("Error: " + e.getMessage());
+	            out.println("Error: " + e.getMessage());
 	            e.printStackTrace();
 	            return false;
 	        }
@@ -1239,14 +1395,14 @@ public class Market {
 	        }
 	    }
 
-	    public boolean updateMarketHoursAndLocation() {
-	        Scanner scanner = new Scanner(System.in);
-
+	    public static boolean updateMarketHoursAndLocation() {
+	        
+	    	clearScreen();
 	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
-	            System.out.print("Enter Market ID to update: ");
+	            out.print("Enter Market ID to update: ");
 	            int marketId;
 	            while (!scanner.hasNextInt()) {
-	                System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                out.println("Invalid input. Please enter a valid numeric Market ID: ");
 	                scanner.next(); // Clear invalid input
 	            }
 	            marketId = scanner.nextInt();
@@ -1261,21 +1417,21 @@ public class Market {
 	                if (market.getId() == marketId) {
 	                    found = true;
 
-	                    System.out.print("Enter new Day (e.g., Monday): ");
+	                    out.print("Enter new Day (e.g., Monday): ");
 	                    String day = scanner.nextLine();
 	                    while (!validateDay(day)) {
-	                        System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+	                        out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
 	                        day = scanner.nextLine();
 	                    }
 
-	                    System.out.print("Enter new Working Hours (e.g., 09:00 - 18:00): ");
+	                    out.print("Enter new Working Hours (e.g., 09:00 - 18:00): ");
 	                    String hours = scanner.nextLine();
 	                    while (!validateWorkingHours(hours)) {
-	                        System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+	                        out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
 	                        hours = scanner.nextLine();
 	                    }
 
-	                    System.out.print("Enter new Location: ");
+	                    out.print("Enter new Location: ");
 	                    String location = scanner.nextLine();
 
 	                    // Update the market object
@@ -1287,16 +1443,16 @@ public class Market {
 	                    file.seek(recordPosition);
 	                    market.writeToFile(file);
 
-	                    System.out.println("Market hours and location updated successfully!");
+	                    out.println("Market hours and location updated successfully!");
 	                    break;
 	                }
 	            }
 
 	            if (!found) {
-	                System.out.printf("Market ID %d not found.%n", marketId);
+	                out.printf("Market ID %d not found.%n", marketId);
 	            }
 	        } catch (IOException e) {
-	            System.out.println("Error accessing the market hours file: " + e.getMessage());
+	            out.println("Error accessing the market hours file: " + e.getMessage());
 	            return false;
 	        }
 
@@ -1304,6 +1460,8 @@ public class Market {
 	    }
     
 	    public static boolean displayMarketHoursAndLocations() {
+	    	
+	    	clearScreen();
     try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("marketHours.bin"))) {
         MarketHoursNode head = null;
 
@@ -1322,7 +1480,7 @@ public class Market {
         return true;
 
     } catch (IOException | ClassNotFoundException e) {
-        System.out.println("Error opening market hours file.");
+        out.println("Error opening market hours file.");
         return false;
     }
 }
@@ -1391,10 +1549,10 @@ public class Market {
         
 
         // Display all entries with the same ID
-        System.out.println("--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
-        System.out.println("ID: " + currentID);
+        out.println("--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
+        out.println("ID: " + currentID);
         while (curr != null && curr.data.getId() == currentID) {
-            System.out.printf("  Day: %s, Hours: %s, Location: %s%n",
+            out.printf("  Day: %s, Hours: %s, Location: %s%n",
                     curr.data.getDay(), curr.data.getHours(), curr.data.getLocation());
             next = xorFunction(prev, curr.xorPtr);
             prev = curr;
@@ -1403,7 +1561,7 @@ public class Market {
 
         // User interaction for next or previous group
         if (curr != null || prev != null) {
-            System.out.print("Enter your choice (n/p/q): ");
+            out.print("Enter your choice (n/p/q): ");
             char choice = scanner.next().charAt(0);
 
             if (choice == 'n') {
@@ -1426,17 +1584,17 @@ public class Market {
                     }
                     // After the above loop, 'curr' will be at the start of the previous group
                 } else {
-                    System.out.println("You have reached the beginning of the list.");
+                    out.println("You have reached the beginning of the list.");
                     curr = head;  // Reset to the head
                     prev = null;
                 }
             } else if (choice == 'q') {
                 break;
             } else {
-                System.out.println("Invalid choice. Please enter 'n', 'p', or 'q'.");
+                out.println("Invalid choice. Please enter 'n', 'p', or 'q'.");
             }
         } else {
-            System.out.println("You have reached the end of the list.");
+            out.println("You have reached the end of the list.");
         }
     }
 }
@@ -1459,6 +1617,255 @@ public class Market {
 	        return xorMap.get(xorKey); // XOR sonucu eşleşen düğümü döndür
 	    }
 
+	    public static boolean searchProductsOrEnterKeyword() {
+	        int choice;
+
+	        do {
+	        	clearScreen();
+	            out.println("==========================================");
+	            out.println("|   Search Products or Enter Keyword     |");
+	            out.println("==========================================");
+	            out.println("| 1. Enter Search Products               |");
+	            out.println("| 2. Enter Keywords                      |");
+	            out.println("| 0. Return to Main Menu                 |");
+	            out.println("==========================================");
+	            out.print("Choose an option: ");
+	            choice = getInput();
+
+	            switch (choice) {
+	                case 1:
+	                    enterSearchProducts();
+	                    break;
+	                case 2:
+	                    enterKeywords();
+	                    break;
+	                case 0:
+	                    out.println("Returning to main menu...\n");
+	                    break;
+	                default:
+	                    out.println("Invalid option. Please try again.\n");
+	                    break;
+	            }
+
+	        } while (choice != 0);
+
+	        return true;
+	    }
+	    
+	    public static boolean enterSearchProducts() {
+	    	
+	    	clearScreen();
+	        RandomAccessFile productFile, vendorFile;
+	        Product product;
+	        Vendor vendor;
+	        String favoriteProduct;
+	        boolean found = false;
+
+	        // Get favorite product name from user
+	        out.println("Enter the name of your favorite product to search for vendors: ");
+	        Scanner scanner = new Scanner(System.in);
+	        favoriteProduct = scanner.nextLine();
+
+	        try {
+	            // Open the product file
+	            productFile = new RandomAccessFile("products.bin", "r");
+	            // Open the vendor file
+	            vendorFile = new RandomAccessFile("vendor.bin", "r");
+
+	            out.println("\n--- Vendors Offering '" + favoriteProduct + "' ---");
+
+	            // Search with KMP by scanning the product file
+	            while (productFile.getFilePointer() < productFile.length()) {
+	                product = readProduct(productFile);
+	                if (KMPSearch(favoriteProduct, product.getProductName())) {
+	                    vendorFile.seek(0); // rewind
+	                    while (vendorFile.getFilePointer() < vendorFile.length()) {
+	                        vendor = readVendor(vendorFile);
+	                        if (vendor.getId() == product.getVendorId()) {
+	                            out.println("Vendor: " + vendor.getName() + ", ID: " + vendor.getId());
+	                            found = true;
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+
+	            if (!found) {
+	                out.println("No vendors found offering '" + favoriteProduct + "'.");
+	            }
+
+	            productFile.close();
+	            vendorFile.close();
+	        } catch (IOException e) {
+	            out.println("Error opening files.");
+	            return false;
+	        }
+
+	        out.println("\nPress Enter to return to menu...");
+	        scanner.nextLine();
+	        return true;
+	    }
+
+	    private static Product readProduct(RandomAccessFile productFile) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		private static Vendor readVendor(RandomAccessFile vendorFile) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		public static boolean KMPSearch(String pattern, String text) {
+	        int M = pattern.length();
+	        int N = text.length();
+
+	        int[] lps = computeLPSArray(pattern);
+
+	        int i = 0; // index for text[]
+	        int j = 0; // index for pattern[]
+	        while (i < N) {
+	            if (pattern.charAt(j) == text.charAt(i)) {
+	                j++;
+	                i++;
+	            }
+	            if (j == M) {
+	                return true; // pattern found
+	            } else if (i < N && pattern.charAt(j) != text.charAt(i)) {
+	                if (j != 0) {
+	                    j = lps[j - 1];
+	                } else {
+	                    i = i + 1;
+	                }
+	            }
+	        }
+	        return false; // pattern not found
+	    }
+
+	    private static int[] computeLPSArray(String pattern) {
+	        int[] lps = new int[pattern.length()];
+	        int length = 0; // length of the previous longest prefix suffix
+	        int i = 1;
+	        lps[0] = 0; // lps[0] is always 0
+
+	        while (i < pattern.length()) {
+	            if (pattern.charAt(i) == pattern.charAt(length)) {
+	                length++;
+	                lps[i] = length;
+	                i++;
+	            } else {
+	                if (length != 0) {
+	                    length = lps[length - 1];
+	                } else {
+	                    lps[i] = 0;
+	                    i++;
+	                }
+	            }
+	        }
+	        return lps;
+	    }
+
+	    public static boolean enterKeywords() {
+	       
+	    	clearScreen();
+	        out.println("\nEnter a keyword to search: ");
+	        String keyword = scanner.nextLine();
+
+	        RandomAccessFile productFile, vendorFile;
+
+	        try {
+	            productFile = new RandomAccessFile("products.bin", "r");
+	            vendorFile = new RandomAccessFile("vendor.bin", "r");
+	        } catch (IOException e) {
+	            out.println("Error opening product or vendor file.\n");
+	            return false;
+	        }
+
+	        Node[] nodes = new Node[100];
+	        int nodeCount = 0;
+
+	        try {
+	            // Read product and vendor information from file and create nodes
+	            while (productFile.getFilePointer() < productFile.length() && nodeCount < 100) {
+	                Product product = readProduct(productFile);
+	                Node productNode = new Node("Product: " + product.getProductName() + ", Season: " + product.getSeason() +
+	                                            ", Vendor ID: " + product.getVendorId() + ", Price: " + product.getPrice() +
+	                                            ", Quantity: " + product.getQuantity());
+	                nodes[nodeCount++] = productNode;
+	            }
+
+	            while (vendorFile.getFilePointer() < vendorFile.length() && nodeCount < 100) {
+	                Vendor vendor = readVendor(vendorFile);
+	                Node vendorNode = new Node("Vendor: " + vendor.getName() + ", ID: " + vendor.vendorId);
+	                nodes[nodeCount++] = vendorNode;
+	            }
+	        } catch (IOException e) {
+	            out.println("Error reading from files.\n");
+	            return false;
+	        } finally {
+	            try {
+	                productFile.close();
+	                vendorFile.close();
+	            } catch (IOException e) {
+	                out.println("Error closing files.\n");
+	            }
+	        }
+
+	        boolean found = false;
+	        Node[] visited = new Node[100];
+	        int visitedCount = 0;
+
+	        for (int i = 0; i < nodeCount; i++) {
+	            visitedCount = 0;
+	            if (DFS(nodes[i], keyword, visited, visitedCount)) {
+	                found = true;
+	            }
+	        }
+
+	        if (!found) {
+	            out.println("No matches found for keyword '" + keyword + "'.");
+	        }
+
+	        out.println("Press Enter to return to menu...");
+	        scanner.nextLine();
+	        return true;
+	    }
+
+	    private static boolean DFS(Node node, String keyword, Node[] visited, int visitedCount) {
+	        Stack<Node> stack = new Stack<>();
+	        stack.push(node);
+
+	        while (!stack.isEmpty()) {
+	            Node currentNode = stack.pop();
+
+	            for (int i = 0; i < visitedCount; i++) {
+	                if (visited[i] == currentNode) {
+	                    return false;
+	                }
+	            }
+
+	            visited[visitedCount++] = currentNode;
+
+	            if (currentNode.getInfo().contains(keyword)) {
+	                out.println("Match found: " + currentNode.getInfo());
+	                return true;
+	            }
+
+	            for (Node neighbor : currentNode.getNeighbors()) {
+	                stack.push(neighbor);
+	            }
+	        }
+
+	        return false;
+	    }
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
     
 }
 
