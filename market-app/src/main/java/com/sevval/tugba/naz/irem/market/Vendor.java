@@ -5,7 +5,7 @@ import java.io.RandomAccessFile;
 
 public class Vendor {
 	
-	private int vendorId;
+	int vendorId;
     private String vendorName;
 
     // Parametreli Yapıcı Metot
