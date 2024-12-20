@@ -35,7 +35,7 @@ public class MarketApp {
 	  Scanner Scanner = new Scanner(System.in);
       Market market = new Market(Scanner, System.out);
 	  
-   Market.mainMenu();
+   Market.userAuthentication();
   }
 
 }
