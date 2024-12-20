@@ -61,7 +61,7 @@ public class Market {
         this.out = out;
     }
     
-    private boolean isAuthenticated = false;
+    private static boolean isAuthenticated = false;
     
     private static void clearScreen() {
         // This is just a placeholder for clear screen in Java since it's platform-dependent
@@ -78,7 +78,7 @@ public class Market {
     }
 
     
-    public boolean userAuthentication() {
+    public static boolean userAuthentication() {
     	
         Scanner scanner = new Scanner(System.in);
         int choice;
@@ -152,7 +152,7 @@ public class Market {
 	                    listingOfLocalProducts();
 	                    break;
 	                case 3:
-	                    //priceComparison();
+	                    priceComparison();
 	                    break;
 	                case 4:
 	                    marketHoursAndLocations();
