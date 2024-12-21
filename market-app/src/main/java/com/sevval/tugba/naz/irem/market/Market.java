@@ -79,8 +79,7 @@ public class Market {
 
     
     public static boolean userAuthentication() {
-    	
-        Scanner scanner = new Scanner(System.in);
+
         int choice;
 
         do {
@@ -125,7 +124,7 @@ public class Market {
 }
 
 	    public static boolean mainMenu() {
-	        Scanner scanner = new Scanner(System.in);
+
 	        int choice;
 
 
@@ -172,7 +171,7 @@ public class Market {
 	    }
 
 	    public static boolean listingOfLocalVendors() {
-	        Scanner scanner = new Scanner(System.in);
+
 	        int choice;
 
 	        do {
@@ -297,7 +296,6 @@ public class Market {
 		    }
 
 		    public static boolean loginUser() {
-		        Scanner scanner = new Scanner(System.in);
 		        out.print("Username: ");
 		        String username = scanner.nextLine();
 		        out.print("Password: ");
