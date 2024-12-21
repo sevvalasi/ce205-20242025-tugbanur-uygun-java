@@ -327,37 +327,53 @@ public class Market {
 		    }
 		    
 		    public static boolean registerUser() {
-		    	clearScreen();
-		        // Getting user information
-		        out.print("Username: ");
-		        String username = scanner.nextLine();
-		        out.print("Password: ");
-		        String password = scanner.nextLine();
+		        clearScreen(); // Ekranı temizler
+		        Scanner scanner = new Scanner(System.in);
 
-		        // Writing user information to a binary file
+		        // Kullanıcı bilgilerini almak için bir User nesnesi oluşturuyoruz
+		        class User {
+		            String username;
+		            String password;
+		        }
+
+		        User user = new User();
+
+		        // Kullanıcıdan bilgi al
+		        System.out.print("Username: ");
+		        user.username = scanner.nextLine();
+		        System.out.print("Password: ");
+		        user.password = scanner.nextLine();
+
+		        // Kullanıcı bilgilerini binary dosyasına yaz
 		        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("users.bin", true))) {
-		            // Writing the username and password directly as UTF strings for simplicity
-		            dos.writeUTF(username);
-		            dos.writeUTF(password);
+		            dos.writeUTF(user.username); // Kullanıcı adını yaz
+		            dos.writeUTF(user.password); // Şifreyi yaz
 		        } catch (IOException e) {
-		            out.println("The file could not be opened.");
+		            System.out.println("The file could not be opened.");
 		            e.printStackTrace();
 		            return false;
 		        }
 
-		        // Save user to .huff file
-		        saveUserToHuffFile(username, password);
+		        // Kullanıcıyı .huff dosyasına kaydet
+		        if (!saveUserToHuffFile(user.username, user.password)) {
+		            System.out.println("Failed to save user to .huff file.");
+		            return false;
+		        }
 
-		        out.println("Registration successful!");
-		        // Capture Enter key press to proceed
+		        // Kayıt işlemi başarılı
+		        System.out.println("Register is successful!");
+		        System.out.println("Press Enter to continue...");
 		        try {
-		            System.in.read();
+		            System.in.read(); // Enter tuşuna basılmasını bekler
 		        } catch (IOException e) {
 		            e.printStackTrace();
 		        }
 		        return true;
 		    }
 
+
+
+		    
 		    public static boolean saveUserToHuffFile(String username, String password) {
 		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
 		            file.seek(file.length());  // Move to the end of the file
