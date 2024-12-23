@@ -41,7 +41,7 @@ public class Product {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -74,7 +74,7 @@ public class Product {
     public void readFromFile(RandomAccessFile file) throws IOException {
         this.vendorId = file.readInt();           // vendorId oku
         this.productName = file.readUTF();        // productName oku
-        this.price = file.readFloat();            // price oku
+        this.price = file.readDouble();            // price oku
         this.quantity = file.readInt();           // quantity oku
         this.season = file.readUTF();             // season oku
     }
@@ -88,5 +88,10 @@ public class Product {
                ", Quantity: " + quantity +
                ", Season: " + season;
     }
+
+	public void writeToRandomAccessFile(RandomAccessFile tempRAF) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 

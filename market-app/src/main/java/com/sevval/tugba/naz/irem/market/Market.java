@@ -297,6 +297,7 @@ public class Market {
 		    }
 
 		    public static boolean loginUser() {
+		    	Scanner scanner = new Scanner(System.in);
 		        out.print("Username: ");
 		        String username = scanner.nextLine();
 		        out.print("Password: ");
@@ -644,7 +645,7 @@ public class Market {
 	    
 	    
 	    public static boolean addProduct() {
-	    	clearScreen();
+	        clearScreen();
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 	        Product product = new Product();
@@ -657,10 +658,10 @@ public class Market {
 	            product.setVendorId(scanner.nextInt());
 	            scanner.nextLine(); // Clear buffer
 
-	            // Check the Vendor ID
+	            // Check Vendor ID
 	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
 	                Vendor vendor = new Vendor(0, null);
-	                vendor.readFromRandomAccessFile(vendorRAF); // Assuming `readFromFile` is implemented in Vendor class
+	                vendor.readFromRandomAccessFile(vendorRAF);
 	                if (vendor.getId() == product.getVendorId()) {
 	                    found = true;
 	                    break;
@@ -689,9 +690,9 @@ public class Market {
 	            out.print("Enter Product Season: ");
 	            product.setSeason(scanner.nextLine());
 
-	            // Append the product information to the file
+	            // Append product to file
 	            productRAF.seek(productRAF.length());
-	            product.writeToFile(productRAF); // Assuming `writeToFile` is implemented in Product class
+	            product.writeToFile(productRAF);
 
 	            out.println("Product added successfully!");
 	            out.println("Press Enter to continue...");
@@ -705,131 +706,135 @@ public class Market {
 	        return true;
 	    }
 	    
+	    
 	    public static boolean updateProduct() {
-	    	
-	    	clearScreen();
+	        clearScreen();
 	        File productFile = new File("products.bin");
 	        File tempFile = new File("temp.bin");
 	        boolean found = false;
 
 	        if (!productFile.exists()) {
-	            out.println("Error: Product file not found.");
+	            System.out.println("Error: Product file not found.");
 	            return false;
 	        }
 
-	        try (ObjectInputStream productInput = new ObjectInputStream(new FileInputStream(productFile));
-	             ObjectOutputStream tempOutput = new ObjectOutputStream(new FileOutputStream(tempFile))) {
+	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
+	             RandomAccessFile tempRAF = new RandomAccessFile(tempFile, "rw")) {
 
-	            out.print("Enter Product Name to update: ");
-	            String productName = scanner.nextLine();
-
-	            while (true) {
-	                try {
-	                    Product product = (Product) productInput.readObject(); // Read product from file
-	                    if (product.getProductName().equals(productName)) {
-	                        found = true;
-	                        // Receive new product information
-	                        out.print("Enter new Product Name: ");
-	                        product.setProductName(scanner.nextLine());
-	                        out.print("Enter new Product Price: ");
-	                        product.setPrice(scanner.nextFloat());
-	                        out.print("Enter new Product Quantity: ");
-	                        product.setQuantity(scanner.nextInt());
-	                        scanner.nextLine(); // Consume newline
-	                        out.print("Enter new Product Season: ");
-	                        product.setSeason(scanner.nextLine());
-	                    }
-	                    tempOutput.writeObject(product); // Write product to temporary file
-	                } catch (EOFException e) {
-	                    break; // End of file reached
+	            String productName = "";
+	            while (productName.isEmpty()) {
+	                System.out.print("Enter Product Name to update: ");
+	                productName = scanner.nextLine().trim(); // Kullanıcıdan ürün adı alınıyor
+	                if (productName.isEmpty()) {
+	                    System.out.println("No product name entered. Please enter a valid product name.");
 	                }
+	            }
+
+	            while (productRAF.getFilePointer() < productRAF.length()) {
+	                Product product = new Product();
+	                product.readFromFile(productRAF);
+
+	                if (product.getProductName().equalsIgnoreCase(productName)) {
+	                    found = true;
+
+	                    // Update product details
+	                    System.out.print("Enter new Product Name: ");
+	                    product.setProductName(scanner.nextLine());
+	                    System.out.print("Enter new Product Price: ");
+	                    product.setPrice(scanner.nextDouble());
+	                    scanner.nextLine(); // Double sonrası tampon temizliği
+	                    System.out.print("Enter new Product Quantity: ");
+	                    product.setQuantity(scanner.nextInt());
+	                    scanner.nextLine(); // Int sonrası tampon temizliği
+	                    System.out.print("Enter new Product Season: ");
+	                    product.setSeason(scanner.nextLine());
+	                }
+
+	                product.writeToFile(tempRAF);
 	            }
 
 	            if (!found) {
-	                out.println("Product with name " + productName + " not found.");
-	                tempFile.delete(); // Delete temporary file
+	                System.out.println("Product with name '" + productName + "' not found.");
+	                tempFile.delete();
 	            } else {
-	                if (productFile.delete() && tempFile.renameTo(productFile)) {
-	                    out.println("Product updated successfully!");
-	                } else {
-	                    out.println("Error: Could not update product file.");
+	                productFile.delete();
+	                if (!tempFile.renameTo(productFile)) {
+	                    System.out.println("Error updating the product file.");
+	                    return false;
 	                }
+	                System.out.println("Product updated successfully!");
 	            }
 
-	        } catch (IOException | ClassNotFoundException e) {
-	            e.printStackTrace();
+	        } catch (IOException e) {
+	            System.out.println("Error accessing files: " + e.getMessage());
 	            return false;
 	        }
 
-	        out.println("Press Enter to continue...");
-	        new Scanner(System.in).nextLine(); // Pause for user input
-
+	        System.out.println("Press Enter to continue...");
+	        scanner.nextLine();
 	        return true;
 	    }
+
+
 
 	    public static boolean deleteProduct() {
-	    	clearScreen();
+	        clearScreen();
 	        File productFile = new File("products.bin");
 	        File tempFile = new File("temp.bin");
+	        boolean found = false;
 
 	        if (!productFile.exists()) {
-	            out.println("Error opening product file.");
+	            System.out.println("Error: Product file not found.");
 	            return false;
 	        }
 
-	        try (
-	            FileInputStream fis = new FileInputStream(productFile);
-	            ObjectInputStream input = new ObjectInputStream(fis);
-	            FileOutputStream fos = new FileOutputStream(tempFile);
-	            ObjectOutputStream output = new ObjectOutputStream(fos)
-	        ) {
-	            out.print("Enter Product Name to delete: ");
-	            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-	            String productName = reader.readLine();
+	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
+	             RandomAccessFile tempRAF = new RandomAccessFile(tempFile, "rw")) {
 
-	            boolean found = false;
-
-	            while (true) {
-	                try {
-	                    Product product = (Product) input.readObject();
-	                    if (product.getProductName().equals(productName)) {
-	                        found = true;
-	                        out.println("Product with name " + productName + " deleted successfully!");
-	                        continue; // Skip product to delete
-	                    }
-	                    output.writeObject(product); // Write other products to temp file
-	                } catch (EOFException e) {
-	                    break; // End of file reached
+	            String productName = "";
+	            while (productName.isEmpty()) {
+	                System.out.print("Enter Product Name to delete: ");
+	                productName = scanner.nextLine().trim();
+	                if (productName.isEmpty()) {
+	                    System.out.println("No product name entered. Please enter a valid product name.");
 	                }
+	            }
+
+	            while (productRAF.getFilePointer() < productRAF.length()) {
+	                Product product = new Product();
+	                product.readFromFile(productRAF);
+
+	                if (product.getProductName().equalsIgnoreCase(productName)) {
+	                    found = true;
+	                    System.out.println("Product with name '" + productName + "' deleted successfully!");
+	                    continue; // Skip writing this product to temp file
+	                }
+
+	                product.writeToFile(tempRAF); // Ürünü geçici dosyaya yaz
 	            }
 
 	            if (!found) {
-	                out.println("Product with name " + productName + " not found.");
-	                tempFile.delete(); // Delete temporary file
+	                System.out.println("Product with name '" + productName + "' not found.");
+	                tempFile.delete();
 	            } else {
-	                if (!productFile.delete()) {
-	                    out.println("Error deleting original product file.");
-	                    return false;
-	                }
-	                if (!tempFile.renameTo(productFile)) {
-	                    out.println("Error renaming temporary file to product file.");
-	                    return false;
+	                if (productFile.delete() && tempFile.renameTo(productFile)) {
+	                    System.out.println("Product deleted successfully!");
+	                } else {
+	                    System.out.println("Error updating the product file.");
 	                }
 	            }
-	        } catch (IOException | ClassNotFoundException e) {
-	            e.printStackTrace();
+
+	        } catch (IOException e) {
+	            System.out.println("Error accessing files: " + e.getMessage());
 	            return false;
 	        }
 
-	        out.println("Press Enter to continue...");
-	        try {
-	            System.in.read();
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-
+	        System.out.println("Press Enter to continue...");
+	        scanner.nextLine();
 	        return true;
 	    }
+
+
 
 	    public static boolean listingOfLocalVendorsandProducts() {
 	    	clearScreen();
@@ -849,10 +854,8 @@ public class Market {
 	        out.println("\n--- Listing All Vendors and Their Products ---\n");
 
 	        try (
-	            FileInputStream vendorFis = new FileInputStream(vendorFile);
-	            ObjectInputStream vendorInput = new ObjectInputStream(vendorFis);
-	            FileInputStream productFis = new FileInputStream(productFile);
-	            ObjectInputStream productInput = new ObjectInputStream(productFis);
+	        		RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r");
+	                RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
 	        ) {
 	            boolean vendorFound = false;
 
@@ -986,7 +989,11 @@ public class Market {
 	                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
 	    }
 
-	        public static int selectProduct(StringBuffer selectedProductName) {
+	       
+	    
+	    
+	    
+	    public static int selectProduct(StringBuffer selectedProductName) {
 	        	clearScreen();
 	            out.print("Enter the product name to select: ");
 	            String input = scanner.nextLine();
@@ -997,6 +1004,8 @@ public class Market {
 	            }
 	            return 1; // Başarısız
 	        }
+	        
+	        
 	        
 	        public static boolean priceComparison() {
 	            int choice;
