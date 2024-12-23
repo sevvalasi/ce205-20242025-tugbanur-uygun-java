@@ -31,6 +31,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.Random;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -386,48 +387,30 @@ public class Market {
 		        }
 		    }
 
+		    public static void addVendor() {
+		        Random random = new Random();
+		        Scanner scanner = new Scanner(System.in);
+		        File file = new File("vendor.bin");
+
+		        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+		            raf.seek(raf.length()); // Dosyanın sonuna git.
+
+		            int vendorId = 100000 + random.nextInt(900000); // Rastgele bir ID üret
+		            System.out.println("Assigned Vendor ID: " + vendorId);
+
+		            System.out.print("Enter Vendor Name: ");
+		            String vendorName = scanner.nextLine(); // Kullanıcıdan vendor adı al
+
+		            raf.writeInt(vendorId); // ID'yi dosyaya yaz
+		            raf.writeUTF(vendorName); // Vendor adını dosyaya yaz
+
+		            System.out.println("Vendor added successfully!");
+		        } catch (IOException e) {
+		            System.out.println("Error writing to file: " + e.getMessage());
+		            e.printStackTrace();
+		        }
+		    }
 		    
-		    
-		    
-	    public static boolean addVendor() {
-	    	clearScreen();
-	        File file = new File("vendor.bin");
-	        Random random = new Random();
-
-	        try (FileOutputStream fos = new FileOutputStream(file, true);
-	             ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos))) {
-
-	            out.println("\n--- List of Vendors ---");
-
-	            // Rastgele 6 basamaklı bir ID üret
-	            int vendorId = random.nextInt(900000) + 100000;
-	            out.println("Assigned Vendor ID: " + vendorId);
-
-	            // Kullanıcıdan vendor adı al
-	            out.print("Enter Vendor Name: ");
-	            String vendorName = scanner.nextLine();
-
-	            // Vendor nesnesini oluştur
-	            Vendor vendor = new Vendor(vendorId, vendorName);
-
-	            // Vendor nesnesini dosyaya yaz
-	            oos.writeObject(vendor);
-
-	            out.println("Vendor added successfully!");
-
-	            // Devam etmek için kullanıcıdan onay al
-	            out.println("Press Enter to continue...");
-	            scanner.nextLine();
-
-	            return true;
-
-	        } catch (IOException e) {
-	            out.println("Error opening vendor file.");
-	            e.printStackTrace();
-	            return false;
-	        }
-	    }
-	    
 	    public static boolean updateVendor() {
 	    	clearScreen();
 	        File file = new File("vendor.bin");
@@ -444,11 +427,11 @@ public class Market {
 
 	            boolean found = false;
 	            while (raf.getFilePointer() < raf.length()) {
-	                // Read the Vendor object from the file
 	                int vendorId = raf.readInt();
-	                byte[] nameBytes = new byte[50];
+	                int nameLength = raf.readUnsignedShort(); // UTF uzunluğunu oku
+	                byte[] nameBytes = new byte[nameLength];
 	                raf.read(nameBytes);
-	                String vendorName = new String(nameBytes).trim();
+	                String vendorName = new String(nameBytes, StandardCharsets.UTF_8); // UTF-8 ile decode et
 
 	                // Check if the ID matches
 	                if (vendorId == id) {
@@ -677,7 +660,7 @@ public class Market {
 	            // Check the Vendor ID
 	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
 	                Vendor vendor = new Vendor(0, null);
-	                vendor.readFromFile(vendorRAF); // Assuming `readFromFile` is implemented in Vendor class
+	                vendor.readFromRandomAccessFile(vendorRAF); // Assuming `readFromFile` is implemented in Vendor class
 	                if (vendor.getId() == product.getVendorId()) {
 	                    found = true;
 	                    break;
