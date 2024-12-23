@@ -27,10 +27,14 @@ public class Vendor {
         return this.vendorName; // vendorName değerini döndür
     }
 
-    // RandomAccessFile'dan veri okuma
-    public void readFromFile(RandomAccessFile vendorRAF) throws IOException {
-        this.vendorId = vendorRAF.readInt();
-        this.vendorName = vendorRAF.readUTF();
+    public void writeToRandomAccessFile(RandomAccessFile file) throws IOException {
+        file.writeInt(vendorId);
+        file.writeUTF(vendorName);
+    }
+
+    public void readFromRandomAccessFile(RandomAccessFile file) throws IOException {
+        this.vendorId = file.readInt();
+        this.vendorName = file.readUTF();
     }
 
     // toString metodu
@@ -38,5 +42,6 @@ public class Vendor {
     public String toString() {
         return "Vendor ID: " + vendorId + ", Name: " + vendorName;
     }
+
 
 }
