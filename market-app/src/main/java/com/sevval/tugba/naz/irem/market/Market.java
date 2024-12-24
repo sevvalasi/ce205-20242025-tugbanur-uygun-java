@@ -470,136 +470,136 @@ public class Market {
 	    }
 	    
 	    public static boolean deleteVendor() {
-	    	clearScreen();
+	        RandomAccessFile raf = null, tempRaf = null;
 	        File file = new File("vendor.bin");
 	        File tempFile = new File("temp.bin");
-	        boolean found = false;
 
-	        if (!file.exists()) {
-	            out.println("Error: vendor.bin file not found.");
-	            return false;
-	        }
+	        try {
+	            raf = new RandomAccessFile(file, "r");
+	            tempRaf = new RandomAccessFile(tempFile, "rw");
 
-	        try (
-	            RandomAccessFile raf = new RandomAccessFile(file, "r");
-	            RandomAccessFile tempRaf = new RandomAccessFile(tempFile, "rw")
-	        ) {
-	            
-	            out.print("Enter Vendor ID to delete: ");
+	            Scanner scanner = new Scanner(System.in);
+	            System.out.print("Enter Vendor ID to delete: ");
 	            int id = scanner.nextInt();
 	            scanner.nextLine(); // Clear input buffer
 
+	            boolean found = false;
 	            while (raf.getFilePointer() < raf.length()) {
-	                int vendorId = raf.readInt(); // Read vendor ID
-	                byte[] nameBytes = new byte[50];
-	                raf.read(nameBytes); // Read vendor name
-	                String vendorName = new String(nameBytes).trim();
+	                int vendorId = raf.readInt();
+	                String vendorName = raf.readUTF();
 
 	                if (vendorId != id) {
-	                    tempRaf.writeInt(vendorId); // Write vendor ID
-	                    tempRaf.write(nameBytes);  // Write vendor name
+	                    tempRaf.writeInt(vendorId);
+	                    tempRaf.writeUTF(vendorName);
 	                } else {
 	                    found = true;
 	                }
 	            }
-	        } catch (IOException e) {
-	            out.println("Error processing file: " + e.getMessage());
-	            return false;
-	        }
 
-	        // Replace original file with updated file
-	        if (file.delete()) {
-	            if (tempFile.renameTo(file)) {
-	                if (found) {
-	                    out.println("Vendor deleted successfully!");
-	                } else {
-	                    out.println("Vendor with the specified ID not found.");
-	                }
-	            } else {
-	                out.println("Error renaming temp file.");
+	            raf.close();
+	            tempRaf.close();
+
+	            if (!file.delete() || !tempFile.renameTo(file)) {
+	                System.out.println("Error updating vendor file.");
+	                return false;
 	            }
-	        } else {
-	            out.println("Error deleting original file.");
-	        }
 
-	        out.println("Press Enter to continue...");
-	        try {
+	            if (found) {
+	                System.out.println("Vendor deleted successfully!");
+	            } else {
+	                System.out.println("Vendor with ID " + id + " not found.");
+	            }
+
+	            System.out.println("Press Enter to continue...");
 	            System.in.read();
-	        } catch (IOException ignored) {
-	        }
 
+	        } catch (IOException e) {
+	            System.out.println("Error processing file: " + e.getMessage());
+	            return false;
+	        } finally {
+	            try {
+	                if (raf != null) raf.close();
+	                if (tempRaf != null) tempRaf.close();
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+	        }
 	        return true;
 	    }
+
 	    
 	    public static boolean listVendors() {
-	    	clearScreen();
+	        clearScreen();
 	        File file = new File("vendor.bin");
 	        if (!file.exists()) {
-	            out.println("Error opening vendor file.");
+	            System.out.println("Error opening vendor file.");
 	            return false;
 	        }
 
-	        // Vendor'ları stack ve queue'ya ekleme
 	        Stack<Vendor> vendorStack = new Stack<>();
 	        Queue<Vendor> vendorQueue = new LinkedList<>();
+	        DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
 
-	        try (ObjectInputStream input = new ObjectInputStream(new FileInputStream(file))) {
-	            while (true) {
-	                Vendor vendor = (Vendor) input.readObject();
+	        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+	            while (raf.getFilePointer() < raf.length()) {
+	                int vendorId = raf.readInt();
+	                String vendorName = raf.readUTF();
+	                Vendor vendor = new Vendor(vendorId, vendorName);
 	                if (!isDuplicate(vendorQueue, vendor)) {
-	                    vendorQueue.add(vendor); // Queue'ya ekle
+	                    vendorQueue.add(vendor);
 	                }
-	                vendorStack.push(vendor); // Stack'e ekle
-	                DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
-					doubleLinkedList.insertVendor(vendor); // Doubly linked list'e ekle
+	                vendorStack.push(vendor);
+	                doubleLinkedList.insertVendor(vendor);
 	            }
 	        } catch (EOFException e) {
 	            // Dosya sonuna ulaşıldı
 	        } catch (Exception e) {
 	            e.printStackTrace();
+	            return false;
 	        }
-	     
-	        DoubleLinkedListNode current = DoubleLinkedList.head;
+
+	        DoubleLinkedListNode current = doubleLinkedList.getHead();
 
 	        while (current != null) {
-	            out.printf("ID: %d, Name: %s%n", current.vendor.getId(), current.vendor.getName());
-	            out.print("\n'n' for Next, 'p' for Previous, 's' for Stack traversal, 'q' for Queue traversal, 'x' to Quit: ");
+	            System.out.printf("ID: %d, Name: %s%n", current.getVendor().getId(), current.getVendor().getName());
+	            System.out.print("\n'n' for Next, 'p' for Previous, 's' for Stack traversal, 'q' for Queue traversal, 'x' to Quit: ");
 	            String choice = scanner.nextLine().trim();
 
 	            if ("n".equalsIgnoreCase(choice)) {
-	                if (current.next != null) {
-	                    current = current.next;
+	                if (current.getNext() != null) {
+	                    current = current.getNext();
 	                } else {
-	                    out.println("No more vendors in this direction.");
+	                    System.out.println("No more vendors in this direction.");
 	                }
 	            } else if ("p".equalsIgnoreCase(choice)) {
-	                if (current.previous != null) {
-	                    current = current.previous;
+	                if (current.getPrevious() != null) {
+	                    current = current.getPrevious();
 	                } else {
-	                    out.println("No more vendors in this direction.");
+	                    System.out.println("No more vendors in this direction.");
 	                }
 	            } else if ("s".equalsIgnoreCase(choice)) {
-	                out.println("\n--- Stack Traversal (Last In, First Out) ---");
+	                System.out.println("\n--- Stack Traversal (Last In, First Out) ---");
 	                while (!vendorStack.isEmpty()) {
 	                    Vendor v = vendorStack.pop();
-	                    out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
+	                    System.out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
 	                }
 	            } else if ("q".equalsIgnoreCase(choice)) {
-	                out.println("\n--- Queue Traversal (First In, First Out) ---");
+	                System.out.println("\n--- Queue Traversal (First In, First Out) ---");
 	                while (!vendorQueue.isEmpty()) {
 	                    Vendor v = vendorQueue.poll();
-	                    out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
+	                    System.out.printf("ID: %d, Name: %s%n", v.getId(), v.getName());
 	                }
 	            } else if ("x".equalsIgnoreCase(choice)) {
 	                break;
 	            } else {
-	                out.println("Invalid input. Please use 'n', 'p', 's', 'q', or 'x'.");
+	                System.out.println("Invalid input. Please use 'n', 'p', 's', 'q', or 'x'.");
 	            }
 	        }
 
-	        out.println("Returning to menu...");
+	        System.out.println("Returning to menu...");
 	        return true;
 	    }
+
 	    
 	    public static boolean isDuplicate(Queue<Vendor> queue, Vendor vendor) {
 	        for (Vendor v : queue) {
