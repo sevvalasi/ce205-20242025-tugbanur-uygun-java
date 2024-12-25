@@ -9,17 +9,24 @@ public class Product {
     private int quantity;          // Ürün miktarı
     private String season;         // Ürün sezon bilgisi
 
-    // --- Constructor ---
-    public Product() {}
-
-    public Product(int vendorId, String productName, double price, int quantity, String season) {
-        this.vendorId = vendorId;
-        this.productName = productName;
-        this.price = price;
-        this.quantity = quantity;
-        this.season = season;
+ // Parametresiz constructor
+    public Product() {
+        this.vendorId = 0;
+        this.productName = "";
+        this.price = 0.0;
+        this.quantity = 0;
+        this.season = "";
     }
-   
+    
+    
+	public Product(int vendorId, String productName, double price, int quantity, String season) {
+		 this.vendorId = vendorId;
+	        this.productName = productName;
+	        this.price = price;
+	        this.quantity = quantity;
+	        this.season = season;
+	}
+
 	// --- Getter ve Setter Metotları ---
     public int getVendorId() {
         return vendorId;
@@ -89,9 +96,5 @@ public class Product {
                ", Season: " + season;
     }
 
-	public void writeToRandomAccessFile(RandomAccessFile tempRAF) {
-		// TODO Auto-generated method stub
-		
-	}
 }
 

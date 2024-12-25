@@ -1,8 +1,7 @@
 package com.sevval.tugba.naz.irem.market;
 
 public class SparseMatrixEntry {
-
-	private int vendorId;
+    private int vendorId;
     private int productId;
     private float price;
 
@@ -23,5 +22,10 @@ public class SparseMatrixEntry {
     public float getPrice() {
         return price;
     }
-	
+
+    @Override
+    public String toString() {
+        return "Vendor ID: " + vendorId + ", Product ID: " + productId + ", Price: " + price;
+    }
 }
+

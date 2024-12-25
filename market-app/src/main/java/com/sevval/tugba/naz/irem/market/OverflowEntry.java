@@ -1,20 +1,16 @@
 package com.sevval.tugba.naz.irem.market;
 
 public class OverflowEntry {
-
-	private int key;
     private boolean isOccupied;
+    private int key;
 
     public OverflowEntry() {
-        this.key = -1;
         this.isOccupied = false;
+        this.key = -1;
     }
 
-    public int getKey() {
-        return key;
-    }
-
-    public void setKey(int key) {
+    public OverflowEntry(boolean isOccupied, int key) {
+        this.isOccupied = isOccupied;
         this.key = key;
     }
 
@@ -25,5 +21,17 @@ public class OverflowEntry {
     public void setOccupied(boolean occupied) {
         isOccupied = occupied;
     }
-	
+
+    public int getKey() {
+        return key;
+    }
+
+    public void setKey(int key) {
+        this.key = key;
+    }
+
+    @Override
+    public String toString() {
+        return "Key: " + key + ", Is Occupied: " + isOccupied;
+    }
 }

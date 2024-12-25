@@ -1,36 +1,29 @@
 package com.sevval.tugba.naz.irem.market;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Bucket {
+    public static Product[] product;
+	private List<Product> products; // Bucket içindeki ürünleri tutan liste
 
-	private static final int MAX_PRODUCTS = 100; // Set a maximum limit for products
-    private Product[] products; // Array to hold Product objects
-    private int productCount; // Counter for the number of products
-
-    // Constructor
+    // Constructor - Listeyi başlatır
     public Bucket() {
-        products = new Product[MAX_PRODUCTS];
-        productCount = 0;
+        this.products = new ArrayList<>();
     }
 
-    // Method to add a product to the bucket
+    // Ürün listesini döndüren getter metodu
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    // Bucket'a bir ürün ekleyen metod
     public void addProduct(Product product) {
-        if (productCount < MAX_PRODUCTS) {
-            products[productCount++] = product; // Add the product and increment the counter
-        } else {
-            System.out.println("Bucket is full. Cannot add more products.");
-        }
+        products.add(product);
     }
 
-    // Method to retrieve all products
-    public Product[] getProducts() {
-        Product[] result = new Product[productCount];
-        System.arraycopy(products, 0, result, 0, productCount); // Copy non-null products to a new array
-        return result;
+    // Bucket'ın içeriğini güzel bir biçimde yazdırmak için toString metodu
+    @Override
+    public String toString() {
+        return "Bucket contains: " + products;
     }
-
-    // Method to get the current product count
-    public int getProductCount() {
-        return productCount;
-    }
-	
 }

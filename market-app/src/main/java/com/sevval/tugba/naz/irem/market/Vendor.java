@@ -43,5 +43,4 @@ public class Vendor {
         return "Vendor ID: " + vendorId + ", Name: " + vendorName;
     }
 
-
 }
