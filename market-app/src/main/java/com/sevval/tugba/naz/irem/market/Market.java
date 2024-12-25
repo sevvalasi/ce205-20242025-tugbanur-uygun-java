@@ -833,165 +833,326 @@ public class Market {
 	        scanner.nextLine();
 	        return true;
 	    }
+	    
+	    static final int MAX_VENDORS = 100;
+	    static final int MAX_PRODUCTS = 100;
+	    static final int TABLE_SIZE = 100;
+	    static final int OVERFLOW_SIZE = 50;
 
+	    static SparseMatrixEntry[] sparseMatrix = new SparseMatrixEntry[MAX_VENDORS * MAX_PRODUCTS];
+	    static int sparseMatrixSize = 0;
 
+	    static HashTableEntry[] hashTable = new HashTableEntry[TABLE_SIZE];
+	    static Bucket[] hashTableBuckets = new Bucket[TABLE_SIZE];
+	    static OverflowEntry[] overflowArea = new OverflowEntry[OVERFLOW_SIZE];
 
 	    public static boolean listingOfLocalVendorsandProducts() {
-	    	clearScreen();
+	        Scanner scanner = new Scanner(System.in);
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 
 	        if (!productFile.exists()) {
-	            out.println("Error opening product file.");
+	            System.out.println("Error opening product file.");
 	            return false;
 	        }
 
 	        if (!vendorFile.exists()) {
-	            out.println("Error opening vendor file.");
+	            System.out.println("Error opening vendor file.");
 	            return false;
 	        }
 
-	        out.println("\n--- Listing All Vendors and Their Products ---\n");
+	        System.out.println("\n--- Listing All Vendors and Their Products ---\n");
 
-	        try (
-	        		RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r");
-	                RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
-	        ) {
-	            boolean vendorFound = false;
+	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
+	             RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r")) {
 
-	            while (true) {
-	                Vendor vendor;
-	                try {
-	                    vendor = (Vendor) vendorInput.readObject();
-	                } catch (EOFException e) {
-	                    break; // End of file
+	            boolean found = false;
+
+	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
+	                Vendor vendor = readVendor(vendorRAF);
+	                if (vendor == null) {
+	                    break; // Dosya sonuna ulaşıldığında döngüyü sonlandır
+	                }
+	                System.out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
+	                System.out.println("--------------------------");
+	                System.out.println("Select Collision Resolution Strategy for Vendor " + vendor.getId() + ":");
+	                System.out.println("1. Linear Probing");
+	                System.out.println("2. Quadratic Probing");
+	                System.out.println("3. Double Hashing");
+	                System.out.println("4. Linear Quotient");
+	                System.out.println("5. Progressive Overflow");
+	                System.out.println("6. Use of Buckets");
+	                System.out.println("7. Brent's Method");
+	                System.out.println("8. Exit");
+	                int strategy = -1;
+	                while (strategy < 1 || strategy > 8) {
+	                    System.out.print("Enter your choice (1-8): ");
+	                    if (scanner.hasNextInt()) {
+	                        strategy = scanner.nextInt();
+	                        scanner.nextLine(); // Buffer temizle
+	                        if (strategy < 1 || strategy > 8) {
+	                            System.out.println("Invalid choice. Please enter a number between 1 and 8.");
+	                        }
+	                    } else {
+	                        System.out.println("Invalid input. Please enter a number between 1 and 8.");
+	                        scanner.nextLine(); // Buffer temizle
+	                    }
 	                }
 
-	                out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
-	                out.println("--------------------------");
-	                out.println("Select Collision Resolution Strategy for Vendor " + vendor.getId() + ":");
-	                out.println("1. Linear Probing");
-	                out.println("2. Quadratic Probing");
-	                out.println("3. Double Hashing");
-	                out.println("4. Linear Quotient");
-	                out.println("5. Progressive Overflow");
-	                out.println("6. Use of Buckets");
-	                out.println("7. Brent's Method");
-	                out.println("8. Exit");
-	                int strategy = scanner.nextInt();
-
 	                if (strategy == 8) {
-	                    out.println("Exiting the vendor list.");
+	                    System.out.println("Exiting the vendor list");
 	                    return true;
 	                }
 
-	                productFis.getChannel().position(0); // Reset file to start
+	                productRAF.seek(0);
 	                boolean productFound = false;
 
 	                switch (strategy) {
-	                    case 1:
-	                        productFound = linearProbing(productInput, vendor.getId());
+	                    case 1: // Linear Probing
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 2:
-	                        productFound = quadraticProbing(productInput, vendor.getId());
+	                    case 2: // Quadratic Probing
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 3:
-	                        productFound = doubleHashing(productInput, vendor.getId());
+	                    case 3: // Double Hashing
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 4:
-	                        productFound = linearQuotient(productInput, vendor.getId());
+	                    case 4: // Linear Quotient
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 5:
-	                        productFound = progressiveOverflow(productInput, vendor.getId());
+	                    case 5: // Progressive Overflow
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 6:
-	                        productFound = useOfBuckets(productInput, vendor.getId());
+	                    case 6: // Use of Buckets
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
-	                    case 7:
-	                        productFound = brentsMethod(productInput, vendor.getId());
+	                    case 7: // Brent's Method
+	                        while (productRAF.getFilePointer() < productRAF.length()) {
+	                            Product product = readProduct(productRAF);
+	                            if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
+	                                System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
+	                                        product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                                productFound = true;
+	                                found = true;
+	                            }
+	                        }
 	                        break;
 	                    default:
-	                        out.println("Invalid strategy selected.");
+	                        System.out.println("Invalid strategy selected.");
 	                        break;
 	                }
 
 	                if (!productFound) {
-	                    out.println("No products available for this vendor.");
+	                    System.out.println("No products available for this vendor.");
 	                }
-	                vendorFound = true;
 	            }
 
-	            if (!vendorFound) {
-	                out.println("No products found for any vendor.");
+	            if (!found) {
+	                System.out.println("No products found for any vendor.");
 	            }
-	        } catch (IOException | ClassNotFoundException e) {
+	        } catch (IOException e) {
 	            e.printStackTrace();
 	            return false;
 	        }
 
-	        out.println("\nPress Enter to return to menu...");
+	        System.out.println("\nPress Enter to return to menu...");
 	        try {
 	            System.in.read();
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        }
+
 	        return true;
 	    }
-	    
-	    public static boolean linearProbing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
+
+	    public static Vendor readVendor(RandomAccessFile raf) throws IOException {
+	        int vendorId = raf.readInt();
+	        String vendorName = raf.readUTF();
+	        return new Vendor(vendorId, vendorName);
+	    }
+
+	    public static Product readProduct(RandomAccessFile raf) throws IOException {
+	        try {
+	            // Sabit uzunluklu stringlerle okuma
+	            String productName = readFixedLengthString(raf, 50); // 50 byte
+	            double price = raf.readDouble(); // Fiyat
+	            int quantity = raf.readInt(); // Miktar
+	            String season = readFixedLengthString(raf, 20); // 20 byte
+	            int vendorId = raf.readInt(); // Vendor ID
+
+	            return new Product(vendorId, productName.trim(), price, quantity, season.trim());
+	        } catch (EOFException e) {
+	            return null; // Dosya sonuna ulaşıldığında null döndür
+	        }
+	    }
+
+
+	    public static void writeVendor(RandomAccessFile raf, Vendor vendor) throws IOException {
+	        raf.writeInt(vendor.getId()); // Write vendor ID
+	        raf.writeUTF(vendor.getName()); // Write vendor name
+	    }
+
+	    public static void writeProduct(RandomAccessFile raf, Product product) throws IOException {
+	        StringBuilder sb = new StringBuilder(product.getProductName());
+	        while (sb.length() < 50) sb.append(' '); // 50 byte'a tamamla
+	        raf.writeBytes(sb.toString().substring(0, 50)); // Ürün adı yaz
+
+	        raf.writeDouble(product.getPrice()); // Fiyat yaz
+	        raf.writeInt(product.getQuantity()); // Miktar yaz
+
+	        sb = new StringBuilder(product.getSeason());
+	        while (sb.length() < 20) sb.append(' '); // 20 byte'a tamamla
+	        raf.writeBytes(sb.toString().substring(0, 20)); // Sezon bilgisi yaz
+
+	        raf.writeInt(product.getVendorId()); // Vendor ID yaz
+	    }
+
+	    public static String readFixedLengthString(RandomAccessFile raf, int length) throws IOException {
+	        byte[] bytes = new byte[length];
+	        raf.readFully(bytes); // Belirtilen uzunlukta oku
+	        return new String(bytes).trim(); // Boşlukları kırp
+	    }
+
+
+	    public static void addVendorProductRelation(int vendorId, int productId, float price) {
+	        if (price == 0) return;
+	        sparseMatrix[sparseMatrixSize] = new SparseMatrixEntry(vendorId, productId, price);
+	        sparseMatrixSize++;
+	    }
+
+	    public static boolean listProductsByVendor(int vendorId) {
+	        System.out.println("\n--- Products offered by Vendor " + vendorId + " ---");
 	        boolean found = false;
-	        while (true) {
-	            try {
-	                Product product = (Product) input.readObject();
-	                if (product.getVendorId() == vendorId) {
-	                    printProductDetails(product);
-	                    found = true;
-	                }
-	            } catch (EOFException e) {
-	                break; // End of file
+	        for (int i = 0; i < sparseMatrixSize; i++) {
+	            if (sparseMatrix[i].getVendorId() == vendorId) {
+	                System.out.printf("Product ID: %d, Price: %.2f\n", sparseMatrix[i].getProductId(), sparseMatrix[i].getPrice());
+	                found = true;
 	            }
 	        }
-	        return found;
+	        if (!found) {
+	            System.out.println("No products found for Vendor " + vendorId + ".");
+	        }
+	        return true;
 	    }
 
-	    public static boolean quadraticProbing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static int hashFunction(int key) {
+	        return key % TABLE_SIZE;
 	    }
 
-	    public static boolean doubleHashing(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static void initializeHashTable() {
+	        for (int i = 0; i < TABLE_SIZE; i++) {
+	            hashTable[i] = new HashTableEntry(false, 0);
+	            hashTableBuckets[i] = new Bucket();
+	        }
+	        for (int i = 0; i < OVERFLOW_SIZE; i++) {
+	            overflowArea[i] = new OverflowEntry(false, 0);
+	        }
 	    }
 
-	    public static boolean linearQuotient(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static int linearProbing(int key, int i) {
+	        return (key + i) % TABLE_SIZE;
 	    }
 
-	    public static boolean progressiveOverflow(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static int quadraticProbing(int key, int i) {
+	        return (key + i * i) % TABLE_SIZE;
 	    }
 
-	    public static boolean useOfBuckets(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static int doubleHashing(int key, int i) {
+	        int h1 = key % TABLE_SIZE;
+	        int h2 = 1 + (key % (TABLE_SIZE - 1));
+	        return (h1 + i * h2) % TABLE_SIZE;
 	    }
 
-	    public static boolean brentsMethod(ObjectInputStream input, int vendorId) throws IOException, ClassNotFoundException {
-	        // Similar to linearProbing
-	        return linearProbing(input, vendorId);
+	    public static int linearQuotient(int key, int i) {
+	        return (key + i * 7) % TABLE_SIZE;
 	    }
 
-	    public static void printProductDetails(Product product) {
-	        out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
-	                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	    public static int progressiveOverflowSearch(int key) {
+	        for (int i = 0; i < OVERFLOW_SIZE; i++) {
+	            if (overflowArea[i].isOccupied() && overflowArea[i].getKey() == key) {
+	                return i + TABLE_SIZE;
+	            }
+	        }
+	        return -1;
 	    }
 
-	       
-	    
-	    
+	    public static int useOfBucketsSearch(int key) {
+	        int index = hashFunction(key);
+	        for (Product product : hashTableBuckets[index].product) {
+	            if (product.getVendorId() == key) {
+	                return index;
+	            }
+	        }
+	        return -1;
+	    }
+
+	    public static int brentsMethodSearch(int key) {
+	        int index = hashFunction(key);
+	        int i = 0;
+	        while (hashTable[index].isOccupied()) {
+	            if (hashTable[index].getKey() == key) {
+	                return index;
+	            }
+	            int newIndex = linearProbing(key, i);
+	            if (!hashTable[newIndex].isOccupied()) {
+	                return -1;
+	            }
+	            i++;
+	            if (i >= TABLE_SIZE) {
+	                break;
+	            }
+	        }
+	        return -1;
+	    }
+	
 	    
 	    public static int selectProduct(StringBuffer selectedProductName) {
 	        	clearScreen();
@@ -1004,8 +1165,6 @@ public class Market {
 	            }
 	            return 1; // Başarısız
 	        }
-	        
-	        
 	        
 	        public static boolean priceComparison() {
 	            int choice;
@@ -1711,16 +1870,6 @@ public class Market {
 	        scanner.nextLine();
 	        return true;
 	    }
-
-	    private static Product readProduct(RandomAccessFile productFile) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		private static Vendor readVendor(RandomAccessFile vendorFile) {
-			// TODO Auto-generated method stub
-			return null;
-		}
 
 		public static boolean KMPSearch(String pattern, String text) {
 	        int M = pattern.length();
