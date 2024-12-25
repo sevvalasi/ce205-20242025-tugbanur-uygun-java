@@ -9,17 +9,24 @@ public class Product {
     private int quantity;          // Ürün miktarı
     private String season;         // Ürün sezon bilgisi
 
-    // --- Constructor ---
-    public Product() {}
-
-    public Product(int vendorId, String productName, double price, int quantity, String season) {
-        this.vendorId = vendorId;
-        this.productName = productName;
-        this.price = price;
-        this.quantity = quantity;
-        this.season = season;
+ // Parametresiz constructor
+    public Product() {
+        this.vendorId = 0;
+        this.productName = "";
+        this.price = 0.0;
+        this.quantity = 0;
+        this.season = "";
     }
-   
+    
+    
+	public Product(int vendorId, String productName, double price, int quantity, String season) {
+		 this.vendorId = vendorId;
+	        this.productName = productName;
+	        this.price = price;
+	        this.quantity = quantity;
+	        this.season = season;
+	}
+
 	// --- Getter ve Setter Metotları ---
     public int getVendorId() {
         return vendorId;
@@ -41,7 +48,7 @@ public class Product {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -74,7 +81,7 @@ public class Product {
     public void readFromFile(RandomAccessFile file) throws IOException {
         this.vendorId = file.readInt();           // vendorId oku
         this.productName = file.readUTF();        // productName oku
-        this.price = file.readFloat();            // price oku
+        this.price = file.readDouble();            // price oku
         this.quantity = file.readInt();           // quantity oku
         this.season = file.readUTF();             // season oku
     }
@@ -88,5 +95,6 @@ public class Product {
                ", Quantity: " + quantity +
                ", Season: " + season;
     }
+
 }
 
