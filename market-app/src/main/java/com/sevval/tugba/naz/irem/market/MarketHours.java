@@ -4,21 +4,15 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class MarketHours {
-	private int id;
+    private int id;
     private String day;
     private String hours;
     private String location;
 
-    public MarketHours() {
-    }
+    // Constructor
+    public MarketHours() {}
 
-    public MarketHours(int id, String day, String hours, String location) {
-        this.id = id;
-        this.day = day;
-        this.hours = hours;
-        this.location = location;
-    }
-
+    // Getter ve Setter'lar
     public int getId() {
         return id;
     }
@@ -51,17 +45,17 @@ public class MarketHours {
         this.location = location;
     }
 
-    public void readFromFile(RandomAccessFile file) throws IOException {
-        this.id = file.readInt();
-        this.day = file.readUTF();
-        this.hours = file.readUTF();
-        this.location = file.readUTF();
-    }
-
     public void writeToFile(RandomAccessFile file) throws IOException {
         file.writeInt(id);
         file.writeUTF(day);
         file.writeUTF(hours);
         file.writeUTF(location);
+    }
+
+    public void readFromFile(RandomAccessFile file) throws IOException {
+        id = file.readInt();
+        day = file.readUTF();
+        hours = file.readUTF();
+        location = file.readUTF();
     }
 }
