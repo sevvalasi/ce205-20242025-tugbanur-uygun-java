@@ -13,6 +13,7 @@
 package com.sevval.tugba.naz.irem.market;
 
 import java.util.Scanner;
+import java.util.Set;
 
 import static java.lang.System.out;
 
@@ -34,6 +35,7 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
@@ -859,20 +861,10 @@ public class Market {
 	        File vendorFile = new File("vendor.bin");
 	        Scanner scanner = new Scanner(System.in);
 
-	        if (!productFile.exists()) {
-	            System.out.println("Error opening product file.");
-	            return false;
-	        }
-
-	        if (!vendorFile.exists()) {
-	            System.out.println("Error opening vendor file.");
-	            return false;
-	        }
-
-	        System.out.println("\n--- Listing All Vendors and Their Products ---\n");
-
 	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
 	             RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r")) {
+
+	            System.out.println("\n--- Listing All Vendors and Their Products ---\n");
 
 	            System.out.println("Select Collision Resolution Strategy for All Vendors:");
 	            System.out.println("1. Linear Probing");
@@ -883,7 +875,8 @@ public class Market {
 	            System.out.println("6. Use of Buckets");
 	            System.out.println("7. Brent's Method");
 	            System.out.println("8. Exit");
-	            int strategy = scanner.nextInt();
+
+	            int strategy = new java.util.Scanner(System.in).nextInt();
 
 	            if (strategy == 8) {
 	                System.out.println("Exiting the product list");
@@ -891,27 +884,21 @@ public class Market {
 	            }
 
 	            boolean found = false;
-
 	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
-	                Vendor vendor = readVendor(vendorRAF);
-	                System.out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")");
-	                System.out.println("--------------------------");
+	                Vendor vendor = new Vendor();
+	                vendor.readFromRandomAccessFile(vendorRAF);
+
+	                System.out.println("\nVendor: " + vendor.getName() + " (ID: " + vendor.getId() + ")\n");
+	                System.out.println("--------------------------\n");
 
 	                boolean productFound = false;
-	                productRAF.seek(0);
+	                productRAF.seek(0); // Reset product file pointer for each vendor
 
 	                while (productRAF.getFilePointer() < productRAF.length()) {
-	                    Product product = readProduct(productRAF);
-	                    if (product == null) {
-	                        System.out.println("Reached end of file or invalid product entry.");
-	                        break;
-	                    }
+	                    Product product = new Product();
+	                    product.readFromFile(productRAF);
 
 	                    if (product.getVendorId() == vendor.getId() && product.getPrice() != 0 && product.getQuantity() != 0) {
-	                        System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
-	                                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
-	                    }
- {
 	                        switch (strategy) {
 	                            case 1:
 	                                System.out.println("Using Linear Probing for Product: " + product.getProductName());
@@ -938,14 +925,11 @@ public class Market {
 	                                System.out.println("Invalid strategy selected.");
 	                                return false;
 	                        }
-
-	                        System.out.printf("Product: %s, Price: %.2f, Quantity: %d, Season: %s\n",
-	                                product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason());
+	                        System.out.println("Product: " + product.getProductName() + ", Price: " + product.getPrice() + ", Quantity: " + product.getQuantity() + ", Season: " + product.getSeason());
 	                        productFound = true;
 	                        found = true;
 	                    }
 	                }
-
 	                if (!productFound) {
 	                    System.out.println("No products available for this vendor.");
 	                }
@@ -956,7 +940,7 @@ public class Market {
 	            }
 
 	        } catch (IOException e) {
-	            e.printStackTrace();
+	            System.out.println("Error accessing files: " + e.getMessage());
 	            return false;
 	        }
 
@@ -1375,8 +1359,8 @@ public class Market {
 	    
 	    
 	    public static boolean addMarketHoursAndLocation() {
-	        clearScreen();
-
+	    	
+	    	clearScreen();
 	        try (RandomAccessFile marketHoursRAF = new RandomAccessFile("marketHours.bin", "rw");
 	             RandomAccessFile vendorRAF = new RandomAccessFile("vendor.bin", "r")) {
 
@@ -1397,12 +1381,11 @@ public class Market {
 	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
 	                int vendorId = vendorRAF.readInt();
 	                String vendorName = vendorRAF.readUTF();
-
 	                if (vendorId == market.getId()) {
 	                    found = true;
 	                    break;
+	                  }
 	                }
-	            }
 
 	            if (!found) {
 	                System.out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
@@ -1419,7 +1402,6 @@ public class Market {
 	                    while (vendorRAF.getFilePointer() < vendorRAF.length()) {
 	                        int vendorId = vendorRAF.readInt();
 	                        String vendorName = vendorRAF.readUTF();
-
 	                        if (vendorId == market.getId()) {
 	                            found = true;
 	                            break;
@@ -1449,16 +1431,16 @@ public class Market {
 	            System.out.print("Enter Location: ");
 	            market.setLocation(scanner.nextLine());
 
-	            // Move to the end of the file to append data
 	            marketHoursRAF.seek(marketHoursRAF.length());
 	            marketHoursRAF.writeInt(market.getId()); // Write Market ID
 	            marketHoursRAF.writeUTF(market.getDay()); // Write Day
 	            marketHoursRAF.writeUTF(market.getHours()); // Write Working Hours
 	            marketHoursRAF.writeUTF(market.getLocation()); // Write Location
+	            
+	            out.println("Market hours and location added successfully!");
 
 	            System.out.println("Market hours and location added successfully!");
 	            return true;
-
 	        } catch (IOException e) {
 	            System.out.println("Error: " + e.getMessage());
 	            e.printStackTrace();
@@ -1517,6 +1499,7 @@ public class Market {
 
 	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
 	            out.print("Enter Market ID to update: ");
+	            
 	            int marketId = scanner.nextInt();
 	            scanner.nextLine(); // Clear the buffer
 
@@ -1525,7 +1508,7 @@ public class Market {
 	            while (file.getFilePointer() < file.length()) {
 	                long recordPosition = file.getFilePointer(); // Remember the record position
 	                MarketHours market = new MarketHours();
-
+	                
 	                try {
 	                    // Read a record
 	                    market.setId(file.readInt());
@@ -1536,7 +1519,6 @@ public class Market {
 	                    System.out.println("Error reading record at position: " + recordPosition);
 	                    break;
 	                }
-
 	                // Display current record
 	                System.out.printf("Current Record: ID=%d, Day=%s, Hours=%s, Location=%s%n",
 	                        market.getId(), market.getDay(), market.getHours(), market.getLocation());
@@ -1574,7 +1556,6 @@ public class Market {
 	                        file.writeUTF(market.getDay());
 	                        file.writeUTF(market.getHours());
 	                        file.writeUTF(market.getLocation());
-
 	                        out.println("Market hours and location updated successfully!");
 	                    } catch (IOException e) {
 	                        System.out.println("Error writing record at position: " + recordPosition);
@@ -1594,74 +1575,118 @@ public class Market {
 
 	        return true;
 	    }
-
-	    
+	    	
 	    public static boolean displayMarketHoursAndLocations() {
-	        clearScreen();
-
 	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "r")) {
 	            MarketHoursNode head = null;
 
 	            // Read all MarketHours from the file and insert into the XOR linked list
 	            while (file.getFilePointer() < file.length()) {
-	                MarketHours market = new MarketHours();
-
-	                // Read MarketHours record from the file
-	                market.setId(file.readInt());
-	                market.setDay(file.readUTF());
-	                market.setHours(file.readUTF());
-	                market.setLocation(file.readUTF());
-
-	                head = insertXORList(head, market);
+	                try {
+	                    MarketHours market = MarketHours.readMarketHours(file);
+	                    if (market != null) {
+	                        head = insertXORList(head, market);
+	                    } else {
+	                        System.err.println("Error: Encountered null MarketHours while reading.");
+	                    }
+	                } catch (IOException e) {
+	                    System.err.println("Error reading MarketHours from file: " + e.getMessage());
+	                    continue; // Skip corrupted record
+	                }
 	            }
 
-	            // Traverse and display the XOR linked list grouped by ID
-	            traverseXORListGroupedByID(head);
+	            // Check if the linked list is empty
+	            if (head == null) {
+	                System.out.println("No market hours available.");
+	                return true;
+	            }
+
+	            // Traverse and display the XOR linked list grouped by ID using BFS
+	            System.out.println("\n--- Market Hours and Locations (BFS Traversal) ---");
+	            Queue<MarketHoursNode> queue = new LinkedList<>();
+	            MarketHoursNode current = head;
+	            MarketHoursNode prev = null;
+	            queue.add(current);
+
+	            // BFS Traversal
+	            while (!queue.isEmpty()) {
+	                current = queue.poll();
+
+	                // Null kontrolü
+	                if (current == null || current.data == null) {
+	                    System.err.println("Error: Encountered a null node or data.");
+	                    continue;
+	                }
+
+	                // Display current node's information
+	                System.out.printf("\nMarket ID: %d\n", current.data.getId());
+	                System.out.printf("  Day: %s, Hours: %s, Location: %s\n",
+	                        current.data.getDay(), current.data.getHours(), current.data.getLocation());
+
+	                // Get the next node using XOR logic
+	                MarketHoursNode next = xorFunction(prev, current.xorPtr);
+
+	                if (next != null) {
+	                    queue.add(next);
+	                }
+
+	                // Move to the next node
+	                prev = current;
+	            }
+
 	            return true;
 
 	        } catch (IOException e) {
-	            System.out.println("Error accessing market hours file: " + e.getMessage());
+	            System.err.println("Error opening market hours file: " + e.getMessage());
 	            return false;
 	        }
 	    }
 
-	    // XOR bağlantı listesine düğüm ekleyen fonksiyon
+
+
+	    public static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
+	        return new MarketHoursNode((a == null ? 0 : System.identityHashCode(a)) ^ (b == null ? 0 : System.identityHashCode(b)));
+	    }
+
 	    public static MarketHoursNode insertXORList(MarketHoursNode head, MarketHours data) {
 	        MarketHoursNode newNode = new MarketHoursNode(data);
-	        addToXorMap(newNode); // Yeni düğümü XOR Map'e ekle
+	        newNode.xorPtr = null;
 
 	        if (head == null) {
-	            return newNode; // Eğer liste boşsa, yeni düğüm baş düğüm olur
+	            return newNode; // Case when list is empty, return new node as head.
 	        }
 
 	        MarketHoursNode prev = null;
 	        MarketHoursNode curr = head;
+	        MarketHoursNode next;
 
-	        // Düğümü uygun yerine yerleştirmek için listeyi dolaşıyoruz
-	        while (curr != null && data.getId() > curr.data.getId()) {
-	            MarketHoursNode next = xorFunction(prev, curr.xorPtr);
+	        while (curr != null) {
+	            next = xorFunction(prev, curr.xorPtr);
+	            if (data.getId() < curr.data.getId()) {
+	                newNode.xorPtr = xorFunction(prev, curr);
+	                if (prev != null) {
+	                    prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, curr), newNode);
+	                }
+	                curr.xorPtr = xorFunction(newNode, next);
+	                if (prev == null) {
+	                    head = newNode;
+	                }
+	                return head;
+	            }
 	            prev = curr;
 	            curr = next;
 	        }
 
-	        // Yeni düğümü yerleştiriyoruz
-	        newNode.xorPtr = xorFunction(prev, curr);
+	        // Insert new node at the end of the list
+	        prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, null), newNode);
+	        newNode.xorPtr = prev;
 
-	        if (prev != null) {
-	            prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, curr), newNode);
-	        }
-
-	        if (curr != null) {
-	            curr.xorPtr = xorFunction(newNode, xorFunction(curr.xorPtr, prev));
-	        }
-
-	        // Baş düğüm değişmediyse mevcut baş düğümü döndür
-	        return (prev == null) ? newNode : head;
+	        return head;
 	    }
 	    
 	    
 
-		public static void traverseXORListGroupedByID(MarketHoursNode head) {
+	    public static void traverseXORListGroupedByID(MarketHoursNode head) {
 	        MarketHoursNode curr = head;
 	        MarketHoursNode prev = null;
 	        MarketHoursNode next;
@@ -1671,10 +1696,10 @@ public class Market {
 	            int currentID = curr.data.getId();
 
 	            // Display all entries with the same ID
-	            System.out.println("--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
-	            System.out.println("ID: " + currentID);
+	            System.out.println("\n--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
+	            System.out.printf("\nID: %d\n", currentID);
 	            while (curr != null && curr.data.getId() == currentID) {
-	                System.out.printf("  Day: %s, Hours: %s, Location: %s%n",
+	                System.out.printf("  Day: %s, Hours: %s, Location: %s\n",
 	                        curr.data.getDay(), curr.data.getHours(), curr.data.getLocation());
 	                next = xorFunction(prev, curr.xorPtr);
 	                prev = curr;
@@ -1683,20 +1708,18 @@ public class Market {
 
 	            // User interaction for next or previous group
 	            if (curr != null || prev != null) {
-	                System.out.print("Enter your choice (n/p/q): ");
+	                System.out.print("\nEnter your choice (n/p/q): ");
 	                char choice = scanner.next().charAt(0);
 
 	                if (choice == 'n') {
 	                    // Continue to next group (already set in curr)
 	                } else if (choice == 'p') {
-	                    // Traverse back to the start of the previous ID group
 	                    while (prev != null && prev.data.getId() == currentID) {
 	                        next = xorFunction(prev.xorPtr, curr);
 	                        curr = prev;
 	                        prev = next;
 	                    }
 
-	                    // Now go further back to reach the start of the previous group
 	                    if (prev != null) {
 	                        currentID = prev.data.getId();
 	                        while (prev != null && prev.data.getId() == currentID) {
@@ -1704,10 +1727,9 @@ public class Market {
 	                            curr = prev;
 	                            prev = next;
 	                        }
-	                        // After the above loop, 'curr' will be at the start of the previous group
 	                    } else {
 	                        System.out.println("You have reached the beginning of the list.");
-	                        curr = head;  // Reset to the head
+	                        curr = head;
 	                        prev = null;
 	                    }
 	                } else if (choice == 'q') {
@@ -1777,36 +1799,29 @@ public class Market {
 	    }
 	    
 	    public static boolean enterSearchProducts() {
-	    	
-	    	clearScreen();
-	        RandomAccessFile productFile, vendorFile;
-	        Product product;
-	        Vendor vendor;
-	        String favoriteProduct;
-	        boolean found = false;
+	        try (RandomAccessFile productFile = new RandomAccessFile("products.bin", "r");
+	             RandomAccessFile vendorFile = new RandomAccessFile("vendor.bin", "r")) {
 
-	        // Get favorite product name from user
-	        out.println("Enter the name of your favorite product to search for vendors: ");
-	        Scanner scanner = new Scanner(System.in);
-	        favoriteProduct = scanner.nextLine();
+	            Product product = new Product();
+	            Vendor vendor = new Vendor();
+	            boolean found = false;
 
-	        try {
-	            // Open the product file
-	            productFile = new RandomAccessFile("products.bin", "r");
-	            // Open the vendor file
-	            vendorFile = new RandomAccessFile("vendor.bin", "r");
+	            // Get favorite product name from user
+	            System.out.print("Enter the name of your favorite product to search for vendors: ");
+	            java.util.Scanner scanner = new java.util.Scanner(System.in);
+	            String favoriteProduct = scanner.nextLine();
 
-	            out.println("\n--- Vendors Offering '" + favoriteProduct + "' ---");
+	            System.out.println("\n--- Vendors Offering '" + favoriteProduct + "' ---\n");
 
 	            // Search with KMP by scanning the product file
 	            while (productFile.getFilePointer() < productFile.length()) {
-	                product = readProduct(productFile);
+	                product.readFromFile(productFile);
 	                if (KMPSearch(favoriteProduct, product.getProductName())) {
-	                    vendorFile.seek(0); // rewind
+	                    vendorFile.seek(0); // Rewind vendor file
 	                    while (vendorFile.getFilePointer() < vendorFile.length()) {
-	                        vendor = readVendor(vendorFile);
+	                        vendor.readFromRandomAccessFile(vendorFile);
 	                        if (vendor.getId() == product.getVendorId()) {
-	                            out.println("Vendor: " + vendor.getName() + ", ID: " + vendor.getId());
+	                            System.out.printf("Vendor: %s, ID: %d\n", vendor.getName(), vendor.getId());
 	                            found = true;
 	                            break;
 	                        }
@@ -1815,53 +1830,25 @@ public class Market {
 	            }
 
 	            if (!found) {
-	                out.println("No vendors found offering '" + favoriteProduct + "'.");
+	                System.out.printf("No vendors found offering '%s'.\n", favoriteProduct);
 	            }
 
-	            productFile.close();
-	            vendorFile.close();
+	            System.out.println("\nPress Enter to return to menu...");
+	            scanner.nextLine();
+
+	            return true;
+
 	        } catch (IOException e) {
-	            out.println("Error opening files.");
+	            System.out.println("Error opening product or vendor file.");
 	            return false;
 	        }
-
-	        out.println("\nPress Enter to return to menu...");
-	        scanner.nextLine();
-	        return true;
 	    }
 
-		public static boolean KMPSearch(String pattern, String text) {
-	        int M = pattern.length();
-	        int N = text.length();
-
-	        int[] lps = computeLPSArray(pattern);
-
-	        int i = 0; // index for text[]
-	        int j = 0; // index for pattern[]
-	        while (i < N) {
-	            if (pattern.charAt(j) == text.charAt(i)) {
-	                j++;
-	                i++;
-	            }
-	            if (j == M) {
-	                return true; // pattern found
-	            } else if (i < N && pattern.charAt(j) != text.charAt(i)) {
-	                if (j != 0) {
-	                    j = lps[j - 1];
-	                } else {
-	                    i = i + 1;
-	                }
-	            }
-	        }
-	        return false; // pattern not found
-	    }
-
-	    private static int[] computeLPSArray(String pattern) {
-	        int[] lps = new int[pattern.length()];
-	        int length = 0; // length of the previous longest prefix suffix
-	        int i = 1;
+	    public static void computeLPSArray(String pattern, int[] lps) {
+	        int length = 0;
 	        lps[0] = 0; // lps[0] is always 0
 
+	        int i = 1;
 	        while (i < pattern.length()) {
 	            if (pattern.charAt(i) == pattern.charAt(length)) {
 	                length++;
@@ -1876,92 +1863,118 @@ public class Market {
 	                }
 	            }
 	        }
-	        return lps;
 	    }
+
+	    public static boolean KMPSearch(String pattern, String text) {
+	        int M = pattern.length();
+	        int N = text.length();
+
+	        int[] lps = new int[M];
+	        computeLPSArray(pattern, lps);
+
+	        int i = 0;
+	        int j = 0;
+	        while (i < N) {
+	            if (pattern.charAt(j) == text.charAt(i)) {
+	                j++;
+	                i++;
+	            }
+
+	            if (j == M) {
+	                return true;
+	            } else if (i < N && pattern.charAt(j) != text.charAt(i)) {
+	                if (j != 0) {
+	                    j = lps[j - 1];
+	                } else {
+	                    i++;
+	                }
+	            }
+	        }
+
+	        return false; // Pattern not found
+	    }
+
+
+		
 
 	    public static boolean enterKeywords() {
-	       
-	    	clearScreen();
-	        out.println("\nEnter a keyword to search: ");
-	        String keyword = scanner.nextLine();
+	        try (RandomAccessFile productFile = new RandomAccessFile("products.bin", "r");
+	             RandomAccessFile vendorFile = new RandomAccessFile("vendor.bin", "r")) {
 
-	        RandomAccessFile productFile, vendorFile;
+	            Scanner scanner = new Scanner(System.in);
+	            System.out.print("\nEnter a keyword to search: ");
+	            String keyword = scanner.nextLine();
 
-	        try {
-	            productFile = new RandomAccessFile("products.bin", "r");
-	            vendorFile = new RandomAccessFile("vendor.bin", "r");
+	            // Create a list for all nodes
+	            List<Node> nodes = new ArrayList<>();
+
+	         // Adding products as nodes
+	            while (productFile.getFilePointer() < productFile.length()) {
+	                Product product = new Product();
+	                product.readFromFile(productFile); // Use the instance method to read data
+	                Node productNode = new Node(String.format("Product: %s, Season: %s, Vendor ID: %d, Price: %.2f, Quantity: %d",
+	                        product.getProductName(), product.getSeason(), product.getVendorId(), product.getPrice(), product.getQuantity()));
+	                nodes.add(productNode);
+	            }
+
+	            // Adding vendors as nodes
+	            while (vendorFile.getFilePointer() < vendorFile.length()) {
+	                Vendor vendor = new Vendor();
+	                vendor.readFromRandomAccessFile(vendorFile); // Use the instance method to read data
+	                Node vendorNode = new Node(String.format("Vendor: %s, ID: %d",
+	                        vendor.getName(), vendor.getId()));
+	                nodes.add(vendorNode);
+	            }
+
+	            // Fill adjacency lists (neighbors)
+	            for (Node node : nodes) {
+	                for (Node potentialNeighbor : nodes) {
+	                    if (!node.equals(potentialNeighbor) && potentialNeighbor.getInfo().contains(node.getInfo())) {
+	                        node.addNeighbor(potentialNeighbor);
+	                    }
+	                }
+	            }
+
+	            // Search keyword with DFS
+	            boolean found = false;
+	            for (Node node : nodes) {
+	                Set<Node> visited = new HashSet<>();
+	                if (DFS(node, keyword, visited)) {
+	                    found = true;
+	                }
+	            }
+
+	            if (!found) {
+	                System.out.printf("No matches found for keyword '%s'.\n", keyword);
+	            }
+
+	            // Running the SCC Algorithm
+	            System.out.println("\nFinding Strongly Connected Components (SCC)...");
+	            findSCC(nodes);
+
+	            return true;
+
 	        } catch (IOException e) {
-	            out.println("Error opening product or vendor file.\n");
+	            System.out.println("Error opening product or vendor file.");
 	            return false;
 	        }
-
-	        Node[] nodes = new Node[100];
-	        int nodeCount = 0;
-
-	        try {
-	            // Read product and vendor information from file and create nodes
-	            while (productFile.getFilePointer() < productFile.length() && nodeCount < 100) {
-	                Product product = readProduct(productFile);
-	                Node productNode = new Node("Product: " + product.getProductName() + ", Season: " + product.getSeason() +
-	                                            ", Vendor ID: " + product.getVendorId() + ", Price: " + product.getPrice() +
-	                                            ", Quantity: " + product.getQuantity());
-	                nodes[nodeCount++] = productNode;
-	            }
-
-	            while (vendorFile.getFilePointer() < vendorFile.length() && nodeCount < 100) {
-	                Vendor vendor = readVendor(vendorFile);
-	                Node vendorNode = new Node("Vendor: " + vendor.getName() + ", ID: " + vendor.vendorId);
-	                nodes[nodeCount++] = vendorNode;
-	            }
-	        } catch (IOException e) {
-	            out.println("Error reading from files.\n");
-	            return false;
-	        } finally {
-	            try {
-	                productFile.close();
-	                vendorFile.close();
-	            } catch (IOException e) {
-	                out.println("Error closing files.\n");
-	            }
-	        }
-
-	        boolean found = false;
-	        Node[] visited = new Node[100];
-	        int visitedCount = 0;
-
-	        for (int i = 0; i < nodeCount; i++) {
-	            visitedCount = 0;
-	            if (DFS(nodes[i], keyword, visited, visitedCount)) {
-	                found = true;
-	            }
-	        }
-
-	        if (!found) {
-	            out.println("No matches found for keyword '" + keyword + "'.");
-	        }
-
-	        out.println("Press Enter to return to menu...");
-	        scanner.nextLine();
-	        return true;
 	    }
 
-	    private static boolean DFS(Node node, String keyword, Node[] visited, int visitedCount) {
+	    public static boolean DFS(Node node, String keyword, Set<Node> visited) {
 	        Stack<Node> stack = new Stack<>();
 	        stack.push(node);
 
 	        while (!stack.isEmpty()) {
 	            Node currentNode = stack.pop();
 
-	            for (int i = 0; i < visitedCount; i++) {
-	                if (visited[i] == currentNode) {
-	                    return false;
-	                }
+	            if (visited.contains(currentNode)) {
+	                continue;
 	            }
 
-	            visited[visitedCount++] = currentNode;
+	            visited.add(currentNode);
 
 	            if (currentNode.getInfo().contains(keyword)) {
-	                out.println("Match found: " + currentNode.getInfo());
+	                System.out.println("Match found: " + currentNode.getInfo());
 	                return true;
 	            }
 
@@ -1971,6 +1984,51 @@ public class Market {
 	        }
 
 	        return false;
+	    }
+
+	    public static void findSCC(List<Node> nodes) {
+	        Map<Node, Integer> ids = new HashMap<>();
+	        Map<Node, Integer> low = new HashMap<>();
+	        Set<Node> onStack = new HashSet<>();
+	        Stack<Node> stack = new Stack<>();
+	        int[] id = {0};
+
+	        for (Node node : nodes) {
+	            if (!ids.containsKey(node)) {
+	                tarjanDFS(node, id, ids, low, stack, onStack);
+	            }
+	        }
+	    }
+
+	    public static void tarjanDFS(Node node, int[] id, Map<Node, Integer> ids, Map<Node, Integer> low,
+	                                  Stack<Node> stack, Set<Node> onStack) {
+	        ids.put(node, id[0]);
+	        low.put(node, id[0]);
+	        id[0]++;
+	        stack.push(node);
+	        onStack.add(node);
+
+	        for (Node neighbor : node.getNeighbors()) {
+	            if (!ids.containsKey(neighbor)) {
+	                tarjanDFS(neighbor, id, ids, low, stack, onStack);
+	                low.put(node, Math.min(low.get(node), low.get(neighbor)));
+	            } else if (onStack.contains(neighbor)) {
+	                low.put(node, Math.min(low.get(node), ids.get(neighbor)));
+	            }
+	        }
+
+	        if (ids.get(node).equals(low.get(node))) {
+	            System.out.print("SCC: ");
+	            while (true) {
+	                Node n = stack.pop();
+	                onStack.remove(n);
+	                System.out.print(n.getInfo() + " ");
+	                if (n.equals(node)) {
+	                    break;
+	                }
+	            }
+	            System.out.println();
+	        }
 	    }
 	    
 }

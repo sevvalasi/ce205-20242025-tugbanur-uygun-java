@@ -45,11 +45,24 @@ public class MarketHours {
         this.location = location;
     }
 
-    public void writeToFile(RandomAccessFile file) throws IOException {
-        file.writeInt(id);
-        file.writeUTF(day);
-        file.writeUTF(hours);
-        file.writeUTF(location);
+    public static MarketHours readMarketHours(RandomAccessFile file) throws IOException {
+        try {
+            int id = file.readInt(); // Read Market ID
+            String day = file.readUTF(); // Read Day
+            String hours = file.readUTF(); // Read Working Hours
+            String location = file.readUTF(); // Read Location
+            return new MarketHours(id, day, hours, location);
+        } catch (IOException e) {
+            System.err.println("Error reading MarketHours from file: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public static void writeMarketHours(RandomAccessFile file, MarketHours market) throws IOException {
+        file.writeInt(market.getId());        // ID'yi yaz
+        file.writeUTF(market.getDay());       // Gün bilgisini yaz
+        file.writeUTF(market.getHours());     // Saat bilgisini yaz
+        file.writeUTF(market.getLocation());  // Lokasyon bilgisini yaz
     }
 
     public void readFromFile(RandomAccessFile file) throws IOException {
