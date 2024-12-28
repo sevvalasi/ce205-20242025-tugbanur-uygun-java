@@ -307,7 +307,7 @@ public class Market {
 		    }
 
 		    public static boolean loginUser() {
-		    	Scanner scanner = new Scanner(System.in);
+
 		        out.print("Username: ");
 		        String username = scanner.nextLine();
 		        out.print("Password: ");
@@ -338,7 +338,7 @@ public class Market {
 		    
 		    public static boolean registerUser() {
 		        clearScreen(); // Ekranı temizler
-		        Scanner scanner = new Scanner(System.in);
+
 
 		        // Kullanıcı bilgilerini almak için bir User nesnesi oluşturuyoruz
 		        class User {
@@ -400,7 +400,7 @@ public class Market {
 
 		    public static void addVendor() {
 		        Random random = new Random();
-		        Scanner scanner = new Scanner(System.in);
+
 		        File file = new File("vendor.bin");
 
 		        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
@@ -431,7 +431,7 @@ public class Market {
 	        }
 
 	        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-	            Scanner scanner = new Scanner(System.in);
+
 	            out.print("Enter Vendor ID to update: ");
 	            int id = scanner.nextInt();
 	            scanner.nextLine(); // Clear the buffer
@@ -488,7 +488,7 @@ public class Market {
 	            raf = new RandomAccessFile(file, "r");
 	            tempRaf = new RandomAccessFile(tempFile, "rw");
 
-	            Scanner scanner = new Scanner(System.in);
+
 	            System.out.print("Enter Vendor ID to delete: ");
 	            int id = scanner.nextInt();
 	            scanner.nextLine(); // Clear input buffer
@@ -859,7 +859,7 @@ public class Market {
 	    public static boolean listingOfLocalVendorsandProducts() {
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
-	        Scanner scanner = new Scanner(System.in);
+
 
 	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
 	             RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r")) {
@@ -1364,7 +1364,7 @@ public class Market {
 	        try (RandomAccessFile marketHoursRAF = new RandomAccessFile("marketHours.bin", "rw");
 	             RandomAccessFile vendorRAF = new RandomAccessFile("vendor.bin", "r")) {
 
-	            Scanner scanner = new Scanner(System.in);
+
 	            MarketHours market = new MarketHours();
 	            boolean found = false;
 
