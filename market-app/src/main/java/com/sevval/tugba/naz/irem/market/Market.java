@@ -43,6 +43,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 
 
 
@@ -851,6 +859,7 @@ public class Market {
 	    public static boolean listingOfLocalVendorsandProducts() {
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
+	        Scanner scanner = new Scanner(System.in);
 
 	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
 	             RandomAccessFile vendorRAF = new RandomAccessFile(vendorFile, "r")) {
@@ -945,55 +954,6 @@ public class Market {
 	        return true;
 	    }
 
-	    public static Vendor readVendor(RandomAccessFile raf) throws IOException {
-	        int vendorId = raf.readInt();
-	        String vendorName = raf.readUTF();
-	        return new Vendor(vendorId, vendorName);
-	    }
-
-	    public static Product readProduct(RandomAccessFile raf) throws IOException {
-	        try {
-	            // Sabit uzunluklu stringlerle okuma
-	            String productName = readFixedLengthString(raf, 50); // 50 byte
-	            double price = raf.readDouble(); // Fiyat
-	            int quantity = raf.readInt(); // Miktar
-	            String season = readFixedLengthString(raf, 20); // 20 byte
-	            int vendorId = raf.readInt(); // Vendor ID
-
-	            return new Product(vendorId, productName.trim(), price, quantity, season.trim());
-	        } catch (EOFException e) {
-	            return null; // Dosya sonuna ulaşıldığında null döndür
-	        }
-	    }
-
-
-	    public static void writeVendor(RandomAccessFile raf, Vendor vendor) throws IOException {
-	        raf.writeInt(vendor.getId()); // Write vendor ID
-	        raf.writeUTF(vendor.getName()); // Write vendor name
-	    }
-
-	    public static void writeProduct(RandomAccessFile raf, Product product) throws IOException {
-	        StringBuilder sb = new StringBuilder(product.getProductName());
-	        while (sb.length() < 50) sb.append(' '); // 50 byte'a tamamla
-	        raf.writeBytes(sb.toString().substring(0, 50)); // Ürün adı yaz
-
-	        raf.writeDouble(product.getPrice()); // Fiyat yaz
-	        raf.writeInt(product.getQuantity()); // Miktar yaz
-
-	        sb = new StringBuilder(product.getSeason());
-	        while (sb.length() < 20) sb.append(' '); // 20 byte'a tamamla
-	        raf.writeBytes(sb.toString().substring(0, 20)); // Sezon bilgisi yaz
-
-	        raf.writeInt(product.getVendorId()); // Vendor ID yaz
-	    }
-
-	    public static String readFixedLengthString(RandomAccessFile raf, int length) throws IOException {
-	        byte[] bytes = new byte[length];
-	        raf.readFully(bytes); // Belirtilen uzunlukta oku
-	        return new String(bytes).trim(); // Boşlukları kırp
-	    }
-
-
 	    public static void addVendorProductRelation(int vendorId, int productId, float price) {
 	        if (price == 0) return;
 	        sparseMatrix[sparseMatrixSize] = new SparseMatrixEntry(vendorId, productId, price);
@@ -1047,23 +1007,23 @@ public class Market {
 	        return (key + i * 7) % TABLE_SIZE;
 	    }
 
-	    public static int progressiveOverflowSearch(int key) {
+	    public static boolean progressiveOverflowSearch(int key) {
 	        for (int i = 0; i < OVERFLOW_SIZE; i++) {
 	            if (overflowArea[i].isOccupied() && overflowArea[i].getKey() == key) {
-	                return i + TABLE_SIZE;
+	                return true;
 	            }
 	        }
-	        return -1;
+	        return false;
 	    }
 
-	    public static int useOfBucketsSearch(int key) {
+	    public static boolean useOfBucketsSearch(int key) {
 	        int index = hashFunction(key);
 	        for (Product product : hashTableBuckets[index].product) {
 	            if (product.getVendorId() == key) {
-	                return index;
+	                return true;
 	            }
 	        }
-	        return -1;
+	        return false;
 	    }
 
 	    public static int brentsMethodSearch(int key) {
@@ -1084,173 +1044,213 @@ public class Market {
 	        }
 	        return -1;
 	    }
+	    
+	    public static String readFixedLengthString(RandomAccessFile raf, int length) throws IOException {
+	        byte[] bytes = new byte[length];
+	        raf.readFully(bytes); // Dosyadan belirtilen uzunlukta byte oku
+	        return new String(bytes).trim(); // String'e çevir ve boşlukları temizle
+	    }
+
+	
+	    public static Vendor readVendor(RandomAccessFile raf) throws IOException {
+	        int vendorId = raf.readInt();
+	        String vendorName = raf.readUTF();
+	        return new Vendor(vendorId, vendorName);
+	    }
+
+	    public static Product readProduct(RandomAccessFile raf) throws IOException {
+	        try {
+	            String productName = raf.readUTF(); // Ürün adı
+	            double price = raf.readDouble();    // Fiyat
+	            int quantity = raf.readInt();       // Miktar
+	            String season = raf.readUTF();      // Sezon bilgisi
+	            int vendorId = raf.readInt();       // Vendor ID
+
+	            return new Product(vendorId, productName, price, quantity, season);
+	        } catch (EOFException e) {
+	            return null; // Dosya sonuna ulaşıldığında null döndür
+	        } catch (IOException e) {
+	            System.out.println("Error reading product: " + e.getMessage());
+	            throw e;
+	        }
+	    }
+
+	    public static void writeVendor(RandomAccessFile raf, Vendor vendor) throws IOException {
+	        raf.writeInt(vendor.getId()); // Write vendor ID
+	        raf.writeUTF(vendor.getName()); // Write vendor name
+	    }
+
+	    public static void writeProduct(RandomAccessFile raf, Product product) throws IOException {
+	        raf.writeUTF(product.getProductName()); // Ürün adı
+	        raf.writeDouble(product.getPrice());    // Fiyat
+	        raf.writeInt(product.getQuantity());    // Miktar
+	        raf.writeUTF(product.getSeason());      // Sezon bilgisi
+	        raf.writeInt(product.getVendorId());    // Vendor ID
+	    }
 	
 	    
-	    public static int selectProduct(StringBuffer selectedProductName) {
-	        	clearScreen();
-	            out.print("Enter the product name to select: ");
-	            String input = scanner.nextLine();
-	            if (!input.isEmpty()) {
-	                selectedProductName.setLength(0); // Önceki değeri temizle
-	                selectedProductName.append(input);
-	                return 0; // Başarılı
-	            }
-	            return 1; // Başarısız
-	        }
 	        
-	        public static boolean priceComparison() {
-	            int choice;
-	            StringBuffer selectedProductName = new StringBuffer();
+	    public static boolean priceComparison() {
+            int choice;
+            StringBuffer selectedProductName = new StringBuffer();
 
-	            do {
-	                clearScreen();
-	                out.println("==========================================");
-	                out.println("|            Price Comparison            |");
-	                out.println("==========================================");
-	                out.println("| 1. Select Product                      |");
-	                out.println("| 2. Compare Prices                      |");
-	                out.println("| 0. Return to Main Menu                 |");
-	                out.println("==========================================");
-	                out.print("Choose an option: ");
-	                choice = getInput();
+            do {
+                clearScreen();
+                out.println("==========================================");
+                out.println("|            Price Comparison            |");
+                out.println("==========================================");
+                out.println("| 1. Select Product                      |");
+                out.println("| 2. Compare Prices                      |");
+                out.println("| 0. Return to Main Menu                 |");
+                out.println("==========================================");
+                out.print("Choose an option: ");
+                choice = getInput();
 
-	                switch (choice) {
-	                    case 1:
-	                        if (selectProduct(selectedProductName) == 0) {
-	                            out.printf("Product '%s' selected.\n", selectedProductName.toString());
-	                        } else {
-	                            out.println("Product selection failed.");
-	                        }
-	                        break;
-	                    case 2:
-	                        if (selectedProductName.length() > 0) {
-	                            comparePricesByName(selectedProductName.toString());
-	                        } else {
-	                            out.println("No product selected. Please select a product first.");
-	                        }
-	                        break;
-	                    case 0:
-	                        out.println("Returning to main menu...");
-	                        break;
-	                    default:
-	                        out.println("Invalid option. Please try again.");
-	                        break;
-	                }
+                switch (choice) {
+                    case 1:
+                    	selectProduct();
+                        break;
+                    case 2:
+                    	comparePrices();
+                        break;
+                    case 0:
+                        out.println("Returning to main menu...");
+                        break;
+                    default:
+                        out.println("Invalid option. Please try again.");
+                        break;
+                }
 
-	                out.println("Press Enter to continue...");
-	                scanner.nextLine(); // Kullanıcıdan Enter tuşuna basmasını bekler
+                out.println("Press Enter to continue...");
+                scanner.nextLine(); // Kullanıcıdan Enter tuşuna basmasını bekler
 
-	            } while (choice != 0);
+            } while (choice != 0);
 
-	            return true;
-	        }
+            return true;
+        }
 
-	    public static boolean selectProduct() {
 	        
-	    	clearScreen();
+	    public static void selectProduct() {
+	        clearScreen();
 	        File productFile = new File("products.bin");
-	        try {
-	            Scanner fileScanner = new Scanner(productFile);
-	            out.println("\n--- Available Products ---");
-	            int productCount = 0;
 
-	            while (fileScanner.hasNextLine()) {
-	                String line = fileScanner.nextLine();
-	                String[] details = line.split(", ");
-	                Product product = new Product();
-	                out.printf("Name: %s, Price: %.2f, Quantity: %d, Season: %s, Vendor ID: %d\n", product.getProductName(), product.getPrice(), product.getQuantity(), product.getSeason(), product.getVendorId());
-	                productCount++;
-	            }
-	            fileScanner.close();
+	        out.print("Enter the Product Name to search: ");
+	        String productName = scanner.nextLine().trim();
 
-	            if (productCount == 0) {
-	                out.println("No products available.");
-	                return false;
-	            }
-
-	            out.println("Enter the Product Name to select: ");
-	            String selectedProductName = scanner.nextLine();
-
-	            // Check if the product has been selected again
-	            fileScanner = new Scanner(productFile);
-	            boolean found = false;
-	            while (fileScanner.hasNextLine()) {
-	                String line = fileScanner.nextLine();
-	                String[] details = line.split(", ");
-	                if (details[0].equals(selectedProductName)) {
-	                    out.printf("Selected Product: %s, Price: %.2f\n", details[0], Double.parseDouble(details[1]));
-	                    found = true;
-	                    break;
-	                }
-	            }
-
-	            fileScanner.close();
-
-	            if (!found) {
-	                out.printf("Product with Name '%s' not found.\n", selectedProductName);
-	                return false;
-	            }
-
-	        } catch (FileNotFoundException e) {
-	            out.println("Error opening product file.");
-	            return false;
+	        if (productName.isEmpty()) {
+	            out.println("Error: Product name cannot be empty.");
+	            out.println("Press Enter to continue...");
+	            scanner.nextLine();
+	            return;
 	        }
 
-	        return true;
-	    }
-
-	    public static void main(String[] args) {
-	        if (selectProduct()) {
-	            out.println("Product selection successful.");
-	        } else {
-	            out.println("Product selection failed.");
-	        }
-	    }
-	    
-	    public static boolean comparePricesByName(String productName) {
-	    	
-	    	clearScreen();
-	        File productFile;
-	        Product[] products = new Product[100];
-	        int productCount = 0;
 	        boolean found = false;
+	        List<ProductSelection.Product> matchingProducts = new ArrayList<>();
 
-	        try {
-	            productFile = new File("products.bin");
-	            Scanner scanner = new Scanner(productFile);
-	            while (scanner.hasNextLine()) {
-	                String line = scanner.nextLine();
-	                String[] details = line.split(",");
-	                Product product = new Product(Integer.parseInt(details[0]), details[1], Double.parseDouble(details[2]), Integer.parseInt(details[3]), details[4]);
-	                if (product.getProductName().equals(productName)) {
-	                    products[productCount++] = product;
+	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r")) {
+	            while (productRAF.getFilePointer() < productRAF.length()) {
+	                ProductSelection.Product product = new ProductSelection.Product();
+	                product.readFromRandomAccessFile(productRAF);
+
+	                if (product.getProductName().equalsIgnoreCase(productName)) {
+	                    matchingProducts.add(product);
 	                    found = true;
 	                }
 	            }
-	            scanner.close();
-	        } catch (FileNotFoundException e) {
-	            out.println("Error opening product file.");
-	            return false;
+
+	            if (found) {
+	                ProductSelection.selectedProductName.setLength(0); // Eski değeri temizle
+	                ProductSelection.selectedProductName.append(productName); // Yeni adı kaydet
+
+	                out.println("==========================================");
+	                out.println("|            Matching Products           |");
+	                out.println("==========================================");
+	                for (ProductSelection.Product product : matchingProducts) {
+	                    out.println("Vendor ID      : " + product.getVendorId());
+	                    out.println("Product Name   : " + product.getProductName());
+	                    out.println("Product Price  : " + product.getPrice());
+	                    out.println("Product Quantity: " + product.getQuantity());
+	                    out.println("Product Season : " + product.getSeason());
+	                    out.println("------------------------------------------");
+	                }
+	            } else {
+	                out.println("No products found with the name: " + productName);
+	            }
+
+	        } catch (IOException e) {
+	            out.println("Error accessing file: " + e.getMessage());
 	        }
 
-	        if (!found) {
-	            out.println("No prices found for Product Name '" + productName + "'.");
-	            return false;
-	        }
-
-	        // Sort products by price (using heap sort)
-	        heapSort(products, productCount);
-
-	        // Print sorted products
-	        out.println("\n--- Price Comparison for Product Name '" + productName + "' (Sorted by Price) ---");
-	        for (int i = 0; i < productCount; i++) {
-	            out.println("Vendor ID: " + products[i].getVendorId() + ", Price: " + String.format("%.2f", products[i].getPrice()));
-	        }
-
-	        out.println("\nLowest Price: " + String.format("%.2f", products[0].getPrice()));
-	        out.println("Highest Price: " + String.format("%.2f", products[productCount - 1].getPrice()));
-	        return true;
+	        out.println("Press Enter to continue...");
+	        scanner.nextLine();
 	    }
+
+
+
+
+
+	    public static void comparePrices() {
+	        if (ProductSelection.selectedProductName.length() == 0) {
+	            out.println("No product selected. Please select a product first (Option 1).");
+	            return;
+	        }
+
+	        String productName = ProductSelection.selectedProductName.toString();
+	        File productFile = new File("products.bin");
+
+	        List<ProductSelection.Product> matchingProducts = new ArrayList<>();
+
+	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r")) {
+	            while (productRAF.getFilePointer() < productRAF.length()) {
+	                ProductSelection.Product product = new ProductSelection.Product();
+	                product.readFromRandomAccessFile(productRAF);
+
+	                if (product.getProductName().equalsIgnoreCase(productName)) {
+	                    matchingProducts.add(product);
+	                }
+	            }
+
+	            if (matchingProducts.isEmpty()) {
+	                out.println("No products found with the name: " + productName);
+	                return;
+	            }
+
+	            // Fiyatlara göre sıralama
+	            matchingProducts.sort(Comparator.comparingDouble(ProductSelection.Product::getPrice));
+
+	            // En düşük ve en yüksek fiyatlı ürünleri al
+	            ProductSelection.Product lowestPriceProduct = matchingProducts.get(0);
+	            ProductSelection.Product highestPriceProduct = matchingProducts.get(matchingProducts.size() - 1);
+
+	            // En düşük fiyatlı ürün bilgisi
+	            out.println("==========================================");
+	            out.println("|       Product with Lowest Price        |");
+	            out.println("==========================================");
+	            out.println("Vendor ID      : " + lowestPriceProduct.getVendorId());
+	            out.println("Product Name   : " + lowestPriceProduct.getProductName());
+	            out.println("Product Price  : " + lowestPriceProduct.getPrice());
+	            out.println("Product Quantity: " + lowestPriceProduct.getQuantity());
+	            out.println("Product Season : " + lowestPriceProduct.getSeason());
+	            out.println("------------------------------------------");
+
+	            // En yüksek fiyatlı ürün bilgisi
+	            out.println("==========================================");
+	            out.println("|       Product with Highest Price       |");
+	            out.println("==========================================");
+	            out.println("Vendor ID      : " + highestPriceProduct.getVendorId());
+	            out.println("Product Name   : " + highestPriceProduct.getProductName());
+	            out.println("Product Price  : " + highestPriceProduct.getPrice());
+	            out.println("Product Quantity: " + highestPriceProduct.getQuantity());
+	            out.println("Product Season : " + highestPriceProduct.getSeason());
+	            out.println("------------------------------------------");
+
+	        } catch (IOException e) {
+	            out.println("Error accessing file: " + e.getMessage());
+	        }
+	    }
+
+
+
 
 	    private static void heapSort(Product[] arr, int n) {
 	        for (int i = n / 2 - 1; i >= 0; i--) {
@@ -1388,11 +1388,11 @@ public class Market {
 	                }
 
 	            if (!found) {
-	                out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
+	                System.out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
 	                while (!found) {
-	                    out.print("Enter Market ID: ");
+	                    System.out.print("Enter Market ID: ");
 	                    while (!scanner.hasNextInt()) {
-	                        out.println("Invalid input. Please enter a valid numeric Market ID: ");
+	                        System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
 	                        scanner.next(); // Clear invalid input
 	                    }
 	                    market.setId(scanner.nextInt());
@@ -1409,27 +1409,26 @@ public class Market {
 	                    }
 
 	                    if (!found) {
-	                        out.println("Invalid Market ID. Please try again.");
+	                        System.out.println("Invalid Market ID. Please try again.");
 	                    }
 	                }
 	            }
 
-	            MarketHours Market = new MarketHours(); 
-	            out.print("Enter Day (e.g., Monday): ");
+	            System.out.print("Enter Day (e.g., Monday): ");
 	            market.setDay(scanner.nextLine());
 	            while (!validateDay(market.getDay())) {
-	                out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+	                System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
 	                market.setDay(scanner.nextLine());
 	            }
 
-	            out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
+	            System.out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
 	            market.setHours(scanner.nextLine());
 	            while (!validateWorkingHours(market.getHours())) {
-	                out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+	                System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
 	                market.setHours(scanner.nextLine());
 	            }
 
-	            out.print("Enter Location: ");
+	            System.out.print("Enter Location: ");
 	            market.setLocation(scanner.nextLine());
 
 	            marketHoursRAF.seek(marketHoursRAF.length());
@@ -1440,6 +1439,7 @@ public class Market {
 	            
 	            out.println("Market hours and location added successfully!");
 
+	            System.out.println("Market hours and location added successfully!");
 	            return true;
 	        } catch (IOException e) {
 	            System.out.println("Error: " + e.getMessage());
@@ -1475,7 +1475,7 @@ public class Market {
 	            int startHour = Integer.parseInt(startTime[0]);
 	            int startMinute = Integer.parseInt(startTime[1]);
 	            int endHour = Integer.parseInt(endTime[0]);
-	           int endMinute = Integer.parseInt(endTime[1]);
+	            int endMinute = Integer.parseInt(endTime[1]);
 
 	            if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
 	                return false;
@@ -1493,9 +1493,10 @@ public class Market {
 	        }
 	    }
 
+
 	    public static boolean updateMarketHoursAndLocation() {
-	        
-	    	clearScreen();
+	        clearScreen();
+
 	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
 	            out.print("Enter Market ID to update: ");
 	            
@@ -1503,6 +1504,7 @@ public class Market {
 	            scanner.nextLine(); // Clear the buffer
 
 	            boolean found = false;
+
 	            while (file.getFilePointer() < file.length()) {
 	                long recordPosition = file.getFilePointer(); // Remember the record position
 	                MarketHours market = new MarketHours();
@@ -1524,6 +1526,7 @@ public class Market {
 	                if (market.getId() == marketId) {
 	                    found = true;
 
+	                    // Prompt user for new values
 	                    out.print("Enter new Day (e.g., Monday): ");
 	                    String day = scanner.nextLine();
 	                    while (!validateDay(day)) {
@@ -1680,6 +1683,8 @@ public class Market {
 
 	        return head;
 	    }
+	    
+	    
 
 	    public static void traverseXORListGroupedByID(MarketHoursNode head) {
 	        MarketHoursNode curr = head;
@@ -1738,6 +1743,26 @@ public class Market {
 	        }
 	    }
 
+		 public static void addToXorMap(MarketHoursNode node) {
+		        xorMap.put(System.identityHashCode(node), node);
+		    }
+		 
+		 private static final Map<Integer, MarketHoursNode> xorMap = new HashMap<>();
+
+
+		    private static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
+		        if (a == null && b == null) {
+		            return null;
+		        }
+		        if (a == null) {
+		            return b;
+		        }
+		        if (b == null) {
+		            return a;
+		        }
+		        int xorKey = System.identityHashCode(a) ^ System.identityHashCode(b);
+		        return xorMap.get(xorKey);
+		    }
 	    public static boolean searchProductsOrEnterKeyword() {
 	        int choice;
 
@@ -2006,14 +2031,6 @@ public class Market {
 	        }
 	    }
 	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-    
 }
 
 	    

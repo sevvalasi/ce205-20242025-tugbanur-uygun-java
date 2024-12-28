@@ -9,16 +9,10 @@ public class MarketHours {
     private String hours;
     private String location;
 
-    public MarketHours() {
-    }
+    // Constructor
+    public MarketHours() {}
 
-    public MarketHours(int id, String day, String hours, String location) {
-        this.id = id;
-        this.day = day;
-        this.hours = hours;
-        this.location = location;
-    }
-
+    // Getter ve Setter'lar
     public int getId() {
         return id;
     }
@@ -69,5 +63,12 @@ public class MarketHours {
         file.writeUTF(market.getDay());       // Gün bilgisini yaz
         file.writeUTF(market.getHours());     // Saat bilgisini yaz
         file.writeUTF(market.getLocation());  // Lokasyon bilgisini yaz
+    }
+
+    public void readFromFile(RandomAccessFile file) throws IOException {
+        id = file.readInt();
+        day = file.readUTF();
+        hours = file.readUTF();
+        location = file.readUTF();
     }
 }
