@@ -1644,9 +1644,7 @@ public class Market {
 
 
 
-	    public static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
-	        return new MarketHoursNode((a == null ? 0 : System.identityHashCode(a)) ^ (b == null ? 0 : System.identityHashCode(b)));
-	    }
+	    
 
 	    public static MarketHoursNode insertXORList(MarketHoursNode head, MarketHours data) {
 	        MarketHoursNode newNode = new MarketHoursNode(data);

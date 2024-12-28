@@ -51,7 +51,7 @@ public class MarketHours {
             String day = file.readUTF(); // Read Day
             String hours = file.readUTF(); // Read Working Hours
             String location = file.readUTF(); // Read Location
-            return new MarketHours(id, day, hours, location);
+            return new MarketHours();
         } catch (IOException e) {
             System.err.println("Error reading MarketHours from file: " + e.getMessage());
             throw e;
