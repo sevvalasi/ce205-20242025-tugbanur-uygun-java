@@ -878,10 +878,7 @@ public class Market {
 
 	            int strategy = new java.util.Scanner(System.in).nextInt();
 
-	            if (strategy == 8) {
-	                System.out.println("Exiting the product list");
-	                return true;
-	            }
+	            if (strategy == 8) {System.out.println("Exiting the product list");return true;}
 
 	            boolean found = false;
 	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
@@ -1847,18 +1844,7 @@ public class Market {
 	        lps[0] = 0; // lps[0] is always 0
 
 	        int i = 1;
-	        while (i < pattern.length()) {
-	            if (pattern.charAt(i) == pattern.charAt(length)) {
-	                length++;
-	                lps[i] = length;
-	                i++;
-	            } else {
-	                if (length != 0) {
-	                    length = lps[length - 1];
-	                } else {
-	                    lps[i] = 0;
-	                    i++;
-	                }
+	        while (i < pattern.length()) {if (pattern.charAt(i) == pattern.charAt(length)) {length++;lps[i] = length;i++;} else {if (length != 0) {length = lps[length - 1];} else {lps[i] = 0;i++;}
 	            }
 	        }
 	    }
@@ -1873,16 +1859,12 @@ public class Market {
 	        int i = 0;
 	        int j = 0;
 	        while (i < N) {
-	            if (pattern.charAt(j) == text.charAt(i)) {
-	                j++;
-	                i++;
-	            }
+	            if (pattern.charAt(j) == text.charAt(i)) {j++;i++;}
 
-	            if (j == M) {
-	                return true;
+	            if (j == M) {return true;
 	            } else if (i < N && pattern.charAt(j) != text.charAt(i)) {
-	                if (j != 0) {
-	                    j = lps[j - 1];
+	                if (j != 0) {j = lps[j - 1];
+
 	                } else {
 	                    i++;
 	                }
@@ -1927,8 +1909,7 @@ public class Market {
 	            // Fill adjacency lists (neighbors)
 	            for (Node node : nodes) {
 	                for (Node potentialNeighbor : nodes) {
-	                    if (!node.equals(potentialNeighbor) && potentialNeighbor.getInfo().contains(node.getInfo())) {
-	                        node.addNeighbor(potentialNeighbor);
+	                    if (!node.equals(potentialNeighbor) && potentialNeighbor.getInfo().contains(node.getInfo())) {node.addNeighbor(potentialNeighbor);
 	                    }
 	                }
 	            }
@@ -1942,9 +1923,7 @@ public class Market {
 	                }
 	            }
 
-	            if (!found) {
-	                System.out.printf("No matches found for keyword '%s'.\n", keyword);
-	            }
+	            if (!found) {System.out.printf("No matches found for keyword '%s'.\n", keyword);}
 
 	            // Running the SCC Algorithm
 	            System.out.println("\nFinding Strongly Connected Components (SCC)...");
@@ -1965,8 +1944,7 @@ public class Market {
 	        while (!stack.isEmpty()) {
 	            Node currentNode = stack.pop();
 
-	            if (visited.contains(currentNode)) {
-	                continue;
+	            if (visited.contains(currentNode)) {continue;
 	            }
 
 	            visited.add(currentNode);

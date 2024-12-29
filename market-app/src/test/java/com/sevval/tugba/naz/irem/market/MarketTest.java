@@ -912,39 +912,39 @@ public class MarketTest {
 
 
   }
-//
-//  @Test
-//  public void testsearchProductsOrEnterKeyword1() {
-//    // Arrange
-//    String input = "1\nelmaa\n\n0\n0\n4\n"; // Simulated user input
-//    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-//    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-//
-//    System.setIn(inputStream); // Simulate user input
-//    System.setOut(new PrintStream(outContent)); // Capture output
-//    Market market = new Market(new Scanner(System.in), System.out);
-//    // Act
-//    boolean result = Market.searchProductsOrEnterKeyword();
-//
-//
-//  }
-//
-//
-//  @Test
-//  public void testsearchProductsOrEnterKeyword2() {
-//    // Arrange
-//    String input = "2\nelmaa\n\n0\n0\n4\n"; // Simulated user input
-//    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-//    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-//
-//    System.setIn(inputStream); // Simulate user input
-//    System.setOut(new PrintStream(outContent)); // Capture output
-//    Market market = new Market(new Scanner(System.in), System.out);
-//    // Act
-//    boolean result = Market.searchProductsOrEnterKeyword();
-//
-//
-//  }
+
+  @Test
+  public void testenterSearchProducts() {
+    // Arrange
+    String input = "1\nelmaa\n\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.enterSearchProducts();
+
+
+  }
+
+
+  @Test
+  public void testenterKeywords() {
+    // Arrange
+    String input = "2\nelmaa\n\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.enterKeywords();
+
+
+  }
 
   @Test
   public void testsearchProductsOrEnterKeywordExit() {
@@ -957,9 +957,6 @@ public class MarketTest {
     boolean result = Market.marketHoursAndLocations();
 
   }
-
-
-
 
 
 }
