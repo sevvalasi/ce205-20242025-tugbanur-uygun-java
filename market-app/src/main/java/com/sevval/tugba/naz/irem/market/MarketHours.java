@@ -58,17 +58,22 @@ public class MarketHours {
         }
     }
 
-    public static void writeMarketHours(RandomAccessFile file, MarketHours market) throws IOException {
-        file.writeInt(market.getId());        // ID'yi yaz
-        file.writeUTF(market.getDay());       // Gün bilgisini yaz
-        file.writeUTF(market.getHours());     // Saat bilgisini yaz
-        file.writeUTF(market.getLocation());  // Lokasyon bilgisini yaz
+    // MarketHours - Dosyaya yazma işlemi
+    public void writeToFile(RandomAccessFile file) throws IOException {
+        file.writeInt(id);        // Market ID
+        file.writeUTF(day);       // Day
+        file.writeUTF(hours);     // Working Hours
+        file.writeUTF(location);  // Location
     }
 
-    public void readFromFile(RandomAccessFile file) throws IOException {
-        id = file.readInt();
-        day = file.readUTF();
-        hours = file.readUTF();
-        location = file.readUTF();
+    // MarketHours - Dosyadan okuma işlemi
+    public static MarketHours readFromFile(RandomAccessFile file) throws IOException {
+        MarketHours market = new MarketHours();
+        market.setId(file.readInt());          // Market ID
+        market.setDay(file.readUTF());         // Day
+        market.setHours(file.readUTF());       // Working Hours
+        market.setLocation(file.readUTF());    // Location
+        return market;
     }
+
 }

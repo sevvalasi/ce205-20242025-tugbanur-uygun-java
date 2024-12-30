@@ -273,20 +273,14 @@ public class Market {
 		                try {
 		                    // Read username length and username
 		                    int usernameLength = file.readInt();
-		                    if (usernameLength > 100) {
-		                        out.println("Username length too long, possible data corruption.");
-		                        return false;
-		                    }
+
 		                    byte[] fileUsername = new byte[usernameLength];
 		                    file.readFully(fileUsername);
 		                    String readUsername = new String(fileUsername);
 
 		                    // Read password length and password
 		                    int passwordLength = file.readInt();
-		                    if (passwordLength > 100) {
-		                        out.println("Password length too long, possible data corruption.");
-		                        return false;
-		                    }
+
 		                    byte[] filePassword = new byte[passwordLength];
 		                    file.readFully(filePassword);
 		                    String readPassword = new String(filePassword);
@@ -306,85 +300,113 @@ public class Market {
 		        return false;
 		    }
 
-		    public static boolean loginUser() {
+	public static boolean loginUser() {
+		String username;
+		String password;
 
-		        out.print("Username: ");
-		        String username = scanner.nextLine();
-		        out.print("Password: ");
-		        String password = scanner.nextLine();
+		// Kullanıcı adı kontrolü
+		do {
+			out.print("Username: ");
+			username = scanner.nextLine();
+			if (username.trim().isEmpty()) {
+				out.println("Username cannot be empty. Please enter a valid username.");
+			}
+		} while (username.trim().isEmpty()); // Kullanıcı adı boş ise tekrar sor
 
-		        if (loginUserFromHuffFile(username, password)) {
-		            out.printf("Login successful. Welcome! %s.\n", username);
-		            return true;
-		        } else {
-		            out.println("Incorrect username or password.");
-		            return false;
-		        }
-		    }
+		// Şifre kontrolü
+		do {
+			out.print("Password: ");
+			password = scanner.nextLine();
+			if (password.trim().isEmpty()) {
+				out.println("Password cannot be empty. Please enter a valid password.");
+			}
+		} while (password.trim().isEmpty()); // Şifre boş ise tekrar sor
 
-		    public static boolean saveUserToHuffFile(String username, int passwordHash) {
-		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
-		            file.seek(file.length());  // Move to the end of the file
-		            byte[] usernameBytes = username.getBytes();
-		            file.writeInt(usernameBytes.length);
-		            file.write(usernameBytes);
-		            file.writeInt(passwordHash);
-		            return true;
-		        } catch (IOException e) {
-		            System.err.println("Error opening file: " + e.getMessage());
-		            return false;
-		        }
-		    }
-		    
-		    public static boolean registerUser() {
-		        clearScreen(); // Ekranı temizler
-
-
-		        // Kullanıcı bilgilerini almak için bir User nesnesi oluşturuyoruz
-		        class User {
-		            String username;
-		            String password;
-		        }
-
-		        User user = new User();
-
-		        // Kullanıcıdan bilgi al
-		        System.out.print("Username: ");
-		        user.username = scanner.nextLine();
-		        System.out.print("Password: ");
-		        user.password = scanner.nextLine();
-
-		        // Kullanıcı bilgilerini binary dosyasına yaz
-		        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("users.bin", true))) {
-		            dos.writeUTF(user.username); // Kullanıcı adını yaz
-		            dos.writeUTF(user.password); // Şifreyi yaz
-		        } catch (IOException e) {
-		            System.out.println("The file could not be opened.");
-		            e.printStackTrace();
-		            return false;
-		        }
-
-		        // Kullanıcıyı .huff dosyasına kaydet
-		        if (!saveUserToHuffFile(user.username, user.password)) {
-		            System.out.println("Failed to save user to .huff file.");
-		            return false;
-		        }
-
-		        // Kayıt işlemi başarılı
-		        System.out.println("Register is successful!");
-		        System.out.println("Press Enter to continue...");
-		        try {
-		            System.in.read(); // Enter tuşuna basılmasını bekler
-		        } catch (IOException e) {
-		            e.printStackTrace();
-		        }
-		        return true;
-		    }
+		// Giriş kontrolü
+		if (loginUserFromHuffFile(username, password)) {
+			out.printf("Login successful. Welcome! %s.\n", username);
+			return true;
+		} else {
+			out.println("Incorrect username or password.");
+			return false;
+		}
+	}
 
 
+	public static boolean saveUserToHuffFile(String username, int passwordHash) {
+		try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
+			file.seek(file.length());  // Move to the end of the file
+			byte[] usernameBytes = username.getBytes();
+			file.writeInt(usernameBytes.length);
+			file.write(usernameBytes);
+			file.writeInt(passwordHash);
+			return true;
+		} catch (IOException e) {
+			System.err.println("Error opening file: " + e.getMessage());
+			return false;
+		}
+	}
 
-		    
-		    public static boolean saveUserToHuffFile(String username, String password) {
+
+	public static boolean registerUser() {
+		clearScreen(); // Ekranı temizler
+
+		// Kullanıcı bilgilerini almak için bir User sınıfı oluşturuyoruz
+		class User {
+			String username;
+			String password;
+		}
+
+		User user = new User();
+
+		// Kullanıcıdan bilgi alırken boş girişleri kontrol et
+		do {
+			out.print("Username: ");
+			user.username = scanner.nextLine();
+			if (user.username.trim().isEmpty()) {
+				out.println("Username cannot be empty. Please enter a valid username.");
+			}
+		} while (user.username.trim().isEmpty()); // Username boş ise tekrar sor
+
+		do {
+			out.print("Password: ");
+			user.password = scanner.nextLine();
+			if (user.password.trim().isEmpty()) {
+				out.println("Password cannot be empty. Please enter a valid password.");
+			}
+		} while (user.password.trim().isEmpty()); // Password boş ise tekrar sor
+
+		// Kullanıcı bilgilerini binary dosyasına yaz
+		try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("users.bin", true))) {
+			dos.writeUTF(user.username); // Kullanıcı adını yaz
+			dos.writeUTF(user.password); // Şifreyi yaz
+		} catch (IOException e) {
+			out.println("The file could not be opened.");
+			e.printStackTrace();
+			return false;
+		}
+
+		// Kullanıcıyı .huff dosyasına kaydet
+		if (!saveUserToHuffFile(user.username, user.password)) {
+			out.println("Failed to save user to .huff file.");
+			return false;
+		}
+
+		// Kayıt işlemi başarılı
+		out.println("Register is successful!");
+		out.println("Press Enter to continue...");
+		try {
+			scanner.nextLine(); // Enter tuşuna basılmasını bekler
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+
+
+
+	public static boolean saveUserToHuffFile(String username, String password) {
 		        try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
 		            file.seek(file.length());  // Move to the end of the file
 		            file.writeInt(username.length());
@@ -398,88 +420,91 @@ public class Market {
 		        }
 		    }
 
-		    public static void addVendor() {
-		        Random random = new Random();
 
-		        File file = new File("vendor.bin");
 
-		        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-		            raf.seek(raf.length()); // Dosyanın sonuna git.
+	public static void addVendor() {
+		Random random = new Random();
 
-		            int vendorId = 100000 + random.nextInt(900000); // Rastgele bir ID üret
-		            System.out.println("Assigned Vendor ID: " + vendorId);
+		File file = new File("vendor.bin");
 
-		            System.out.print("Enter Vendor Name: ");
-		            String vendorName = scanner.nextLine(); // Kullanıcıdan vendor adı al
+		try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+			raf.seek(raf.length()); // Dosyanın sonuna git.
 
-		            raf.writeInt(vendorId); // ID'yi dosyaya yaz
-		            raf.writeUTF(vendorName); // Vendor adını dosyaya yaz
+			int vendorId = 100000 + random.nextInt(900000); // Rastgele bir ID üret
+			System.out.println("Assigned Vendor ID: " + vendorId);
 
-		            System.out.println("Vendor added successfully!");
-		        } catch (IOException e) {
-		            System.out.println("Error writing to file: " + e.getMessage());
-		            e.printStackTrace();
-		        }
-		    }
-		    
-	    public static boolean updateVendor() {
-	    	clearScreen();
-	        File file = new File("vendor.bin");
-	        if (!file.exists()) {
-	            out.println("Error: Vendor file not found.");
-	            return false;
-	        }
+			String vendorName;
+			do {
+				System.out.print("Enter Vendor Name: ");
+				vendorName = scanner.nextLine(); // Kullanıcıdan vendor adı al
+				if (vendorName.trim().isEmpty()) {
+					System.out.println("Vendor Name cannot be empty. Please enter a valid name.");
+				}
+			} while (vendorName.trim().isEmpty()); // Boş giriş varsa tekrar sor
 
-	        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+			raf.writeInt(vendorId); // ID'yi dosyaya yaz
+			raf.writeUTF(vendorName); // Vendor adını dosyaya yaz
 
-	            out.print("Enter Vendor ID to update: ");
-	            int id = scanner.nextInt();
-	            scanner.nextLine(); // Clear the buffer
+			System.out.println("Vendor added successfully!");
+		} catch (IOException e) {
+			System.out.println("Error writing to file: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
-	            boolean found = false;
-	            while (raf.getFilePointer() < raf.length()) {
-	                int vendorId = raf.readInt();
-	                int nameLength = raf.readUnsignedShort(); // UTF uzunluğunu oku
-	                byte[] nameBytes = new byte[nameLength];
-	                raf.read(nameBytes);
-	                String vendorName = new String(nameBytes, StandardCharsets.UTF_8); // UTF-8 ile decode et
 
-	                // Check if the ID matches
-	                if (vendorId == id) {
-	                    out.print("Enter new Vendor Name: ");
-	                    String newName = scanner.nextLine();
+	public static void updateVendor() {
+		File file = new File("vendor.bin");
 
-	                    // Write back the updated Vendor data
-	                    raf.seek(raf.getFilePointer() - 54); // Go back to the start of this Vendor entry
-	                    raf.writeInt(vendorId);
-	                    byte[] updatedName = newName.getBytes();
-	                    if (updatedName.length > 50) {
-	                        out.println("Vendor name is too long. Maximum length is 50 characters.");
-	                        return false;
-	                    }
-	                    raf.write(Arrays.copyOf(updatedName, 50)); // Write the updated name with padding
+		try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+			// Vendor Name'i al
+			String vendorNameToUpdate;
+			while (true) {
+				System.out.print("Enter Vendor Name to update: ");
+				vendorNameToUpdate = scanner.nextLine().trim(); // Vendor Name'i al
+				if (!vendorNameToUpdate.isEmpty()) {
+					break; // Geçerli bir giriş alındığında döngüden çık
+				} else {
+					System.out.println("Vendor Name cannot be empty. Please enter a valid name.");
+				}
+			}
 
-	                    out.println("Vendor updated successfully!");
-	                    found = true;
-	                    break;
-	                }
-	            }
+			boolean isUpdated = false;
+			while (raf.getFilePointer() < raf.length()) { // Dosyanın sonuna kadar oku
+				long recordPosition = raf.getFilePointer(); // Mevcut kaydın başlangıç pozisyonunu kaydet
+				int vendorId = raf.readInt(); // Vendor ID'yi oku
+				String vendorName = raf.readUTF(); // Vendor ismini oku
 
-	            if (!found) {
-	                out.println("Vendor with ID " + id + " not found.");
-	            }
+				if (vendorName.equalsIgnoreCase(vendorNameToUpdate)) { // Eğer isim eşleşirse
+					String newVendorName;
+					do {
+						System.out.print("Enter new Vendor Name: ");
+						newVendorName = scanner.nextLine().trim();
+						if (newVendorName.isEmpty()) {
+							System.out.println("Vendor Name cannot be empty. Please enter a valid name.");
+						}
+					} while (newVendorName.isEmpty()); // Yeni isim boşsa tekrar sor
 
-	            out.println("Press Enter to continue...");
-	            scanner.nextLine(); // Wait for user input
+					raf.seek(recordPosition + 4); // ID'den sonraki pozisyona git
+					raf.writeUTF(newVendorName); // Yeni ismi yaz
+					System.out.println("Vendor updated successfully!");
+					isUpdated = true;
+					break;
+				}
+			}
 
-	            return true;
-	        } catch (IOException e) {
-	            out.println("Error accessing the vendor file: " + e.getMessage());
-	            return false;
-	        }
-	    }
-	    
-	    public static boolean deleteVendor() {
+			if (!isUpdated) {
+				System.out.println("Vendor Name not found.");
+			}
+		} catch (IOException e) {
+			System.out.println("Error accessing the vendor file: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+
+
+	public static boolean deleteVendor() {
 	        RandomAccessFile raf = null, tempRaf = null;
 	        File file = new File("vendor.bin");
 	        File tempFile = new File("temp.bin");
@@ -715,79 +740,89 @@ public class Market {
 
 	        return true;
 	    }
-	    
-	    
-	    public static boolean updateProduct() {
-	        clearScreen();
-	        File productFile = new File("products.bin");
-	        File tempFile = new File("temp.bin");
-	        boolean found = false;
-
-	        if (!productFile.exists()) {
-	            System.out.println("Error: Product file not found.");
-	            return false;
-	        }
-
-	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
-	             RandomAccessFile tempRAF = new RandomAccessFile(tempFile, "rw")) {
-
-	            String productName = "";
-	            while (productName.isEmpty()) {
-	                System.out.print("Enter Product Name to update: ");
-	                productName = scanner.nextLine().trim(); // Kullanıcıdan ürün adı alınıyor
-	                if (productName.isEmpty()) {
-	                    System.out.println("No product name entered. Please enter a valid product name.");
-	                }
-	            }
-
-	            while (productRAF.getFilePointer() < productRAF.length()) {
-	                Product product = new Product();
-	                product.readFromFile(productRAF);
-
-	                if (product.getProductName().equalsIgnoreCase(productName)) {
-	                    found = true;
-
-	                    // Update product details
-	                    System.out.print("Enter new Product Name: ");
-	                    product.setProductName(scanner.nextLine());
-	                    System.out.print("Enter new Product Price: ");
-	                    product.setPrice(scanner.nextDouble());
-	                    scanner.nextLine(); // Double sonrası tampon temizliği
-	                    System.out.print("Enter new Product Quantity: ");
-	                    product.setQuantity(scanner.nextInt());
-	                    scanner.nextLine(); // Int sonrası tampon temizliği
-	                    System.out.print("Enter new Product Season: ");
-	                    product.setSeason(scanner.nextLine());
-	                }
-
-	                product.writeToFile(tempRAF);
-	            }
-
-	            if (!found) {
-	                System.out.println("Product with name '" + productName + "' not found.");
-	                tempFile.delete();
-	            } else {
-	                productFile.delete();
-	                if (!tempFile.renameTo(productFile)) {
-	                    System.out.println("Error updating the product file.");
-	                    return false;
-	                }
-	                System.out.println("Product updated successfully!");
-	            }
-
-	        } catch (IOException e) {
-	            System.out.println("Error accessing files: " + e.getMessage());
-	            return false;
-	        }
-
-	        System.out.println("Press Enter to continue...");
-	        scanner.nextLine();
-	        return true;
-	    }
 
 
+	public static boolean updateProduct() {
+		clearScreen();
+		File productFile = new File("products.bin");
+		File tempFile = new File("temp.bin");
+		boolean found = false;
 
-	    public static boolean deleteProduct() {
+		if (!productFile.exists()) {
+			System.out.println("Error: Product file not found.");
+			return false;
+		}
+
+		try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
+			 RandomAccessFile tempRAF = new RandomAccessFile(tempFile, "rw")) {
+
+			String productName = "";
+			while (productName.isEmpty()) {
+				System.out.print("Enter Product Name to update: ");
+				productName = scanner.nextLine().trim(); // Kullanıcıdan ürün adı alınıyor
+				if (productName.isEmpty()) {
+					System.out.println("No product name entered. Please enter a valid product name.");
+				}
+			}
+
+			while (productRAF.getFilePointer() < productRAF.length()) {
+				Product product = new Product();
+				product.readFromFile(productRAF);
+
+				if (product.getProductName().equalsIgnoreCase(productName)) {
+					found = true;
+
+					// Update product details
+					System.out.print("Enter new Product Name: ");
+					product.setProductName(scanner.nextLine().trim());
+					System.out.print("Enter new Product Price: ");
+					product.setPrice(scanner.nextDouble());
+					scanner.nextLine(); // Double sonrası tampon temizliği
+					System.out.print("Enter new Product Quantity: ");
+					product.setQuantity(scanner.nextInt());
+					scanner.nextLine(); // Int sonrası tampon temizliği
+					System.out.print("Enter new Product Season: ");
+					product.setSeason(scanner.nextLine().trim());
+				}
+
+				product.writeToFile(tempRAF);
+			}
+
+			if (!found) {
+				System.out.println("Product with name '" + productName + "' not found.");
+				tempFile.delete();
+			} else {
+				// Kapalı dosyalarla dosya değiştirme işlemi
+				productRAF.close(); // RandomAccessFile nesnesini kapat
+				tempRAF.close(); // RandomAccessFile nesnesini kapat
+
+				if (!productFile.delete()) {
+					System.out.println("Error deleting the old product file.");
+					tempFile.delete(); // Geçici dosyayı temizle
+					return false;
+				}
+
+				if (!tempFile.renameTo(productFile)) {
+					System.out.println("Error renaming the temp file to product file.");
+					return false;
+				}
+				System.out.println("Product updated successfully!");
+			}
+
+		} catch (IOException e) {
+			System.out.println("Error accessing files: " + e.getMessage());
+			return false;
+		}
+
+		System.out.println("Press Enter to continue...");
+		scanner.nextLine();
+		return true;
+	}
+
+
+
+
+	public static boolean deleteProduct() {
 	        clearScreen();
 	        File productFile = new File("products.bin");
 	        File tempFile = new File("temp.bin");
@@ -1126,67 +1161,68 @@ public class Market {
             return true;
         }
 
-	        
-	    public static void selectProduct() {
-	        clearScreen();
-	        File productFile = new File("products.bin");
 
-	        out.print("Enter the Product Name to search: ");
-	        String productName = scanner.nextLine().trim();
+	public static void selectProduct() {
+		clearScreen();
+		File productFile = new File("products.bin");
 
-	        if (productName.isEmpty()) {
-	            out.println("Error: Product name cannot be empty.");
-	            out.println("Press Enter to continue...");
-	            scanner.nextLine();
-	            return;
-	        }
+		String productName = "";
 
-	        boolean found = false;
-	        List<ProductSelection.Product> matchingProducts = new ArrayList<>();
+		// Ürün adı girilene kadar kullanıcıdan giriş al
+		while (productName.isEmpty()) {
+			out.print("Enter the Product Name to search: ");
+			productName = scanner.nextLine().trim();
 
-	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r")) {
-	            while (productRAF.getFilePointer() < productRAF.length()) {
-	                ProductSelection.Product product = new ProductSelection.Product();
-	                product.readFromRandomAccessFile(productRAF);
+			if (productName.isEmpty()) {
+				out.println("Error: Product name cannot be empty.");
+			}
+		}
 
-	                if (product.getProductName().equalsIgnoreCase(productName)) {
-	                    matchingProducts.add(product);
-	                    found = true;
-	                }
-	            }
+		boolean found = false;
+		List<ProductSelection.Product> matchingProducts = new ArrayList<>();
 
-	            if (found) {
-	                ProductSelection.selectedProductName.setLength(0); // Eski değeri temizle
-	                ProductSelection.selectedProductName.append(productName); // Yeni adı kaydet
+		try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r")) {
+			while (productRAF.getFilePointer() < productRAF.length()) {
+				ProductSelection.Product product = new ProductSelection.Product();
+				product.readFromRandomAccessFile(productRAF);
 
-	                out.println("==========================================");
-	                out.println("|            Matching Products           |");
-	                out.println("==========================================");
-	                for (ProductSelection.Product product : matchingProducts) {
-	                    out.println("Vendor ID      : " + product.getVendorId());
-	                    out.println("Product Name   : " + product.getProductName());
-	                    out.println("Product Price  : " + product.getPrice());
-	                    out.println("Product Quantity: " + product.getQuantity());
-	                    out.println("Product Season : " + product.getSeason());
-	                    out.println("------------------------------------------");
-	                }
-	            } else {
-	                out.println("No products found with the name: " + productName);
-	            }
+				if (product.getProductName().equalsIgnoreCase(productName)) {
+					matchingProducts.add(product);
+					found = true;
+				}
+			}
 
-	        } catch (IOException e) {
-	            out.println("Error accessing file: " + e.getMessage());
-	        }
+			if (found) {
+				ProductSelection.selectedProductName.setLength(0); // Eski değeri temizle
+				ProductSelection.selectedProductName.append(productName); // Yeni adı kaydet
 
-	        out.println("Press Enter to continue...");
-	        scanner.nextLine();
-	    }
+				out.println("==========================================");
+				out.println("|            Matching Products           |");
+				out.println("==========================================");
+				for (ProductSelection.Product product : matchingProducts) {
+					out.println("Vendor ID      : " + product.getVendorId());
+					out.println("Product Name   : " + product.getProductName());
+					out.println("Product Price  : " + product.getPrice());
+					out.println("Product Quantity: " + product.getQuantity());
+					out.println("Product Season : " + product.getSeason());
+					out.println("------------------------------------------");
+				}
+			} else {
+				out.println("No products found with the name: " + productName);
+			}
+
+		} catch (IOException e) {
+			out.println("Error accessing file: " + e.getMessage());
+		}
+
+		out.println("Press Enter to continue...");
+		scanner.nextLine(); // Kullanıcının devam etmesini bekle
+	}
 
 
 
 
-
-	    public static void comparePrices() {
+	public static void comparePrices() {
 	        if (ProductSelection.selectedProductName.length() == 0) {
 	            out.println("No product selected. Please select a product first (Option 1).");
 	            return;
@@ -1281,7 +1317,7 @@ public class Market {
 
 	            heapify(arr, n, largest);
 	        }
-	    
+
 	    }
 
 	    public BPlusTreeNode createNode(boolean isLeaf) {
@@ -1353,411 +1389,341 @@ public class Market {
 	        return true;
 	    }
 
-	    
-	    
-	    public static boolean addMarketHoursAndLocation() {
-	    	
-	    	clearScreen();
-	        try (RandomAccessFile marketHoursRAF = new RandomAccessFile("marketHours.bin", "rw");
-	             RandomAccessFile vendorRAF = new RandomAccessFile("vendor.bin", "r")) {
 
 
-	            MarketHours market = new MarketHours();
-	            boolean found = false;
+	public static boolean addMarketHoursAndLocation() {
+		clearScreen();
 
-	            System.out.print("Enter Market ID: ");
-	            while (!scanner.hasNextInt()) {
-	                System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
-	                scanner.next(); // Clear invalid input
-	            }
-	            market.setId(scanner.nextInt());
-	            scanner.nextLine(); // Clear the buffer
+		try (RandomAccessFile marketHoursRAF = new RandomAccessFile("marketHours.bin", "rw");
+			 RandomAccessFile vendorRAF = new RandomAccessFile("vendor.bin", "r")) {
 
-	            // Read vendors from the file and check for the given Market ID
-	            vendorRAF.seek(0);
-	            while (vendorRAF.getFilePointer() < vendorRAF.length()) {
-	                int vendorId = vendorRAF.readInt();
-	                String vendorName = vendorRAF.readUTF();
-	                if (vendorId == market.getId()) {
-	                    found = true;
-	                    break;
-	                  }
-	                }
+			MarketHours market = new MarketHours();
+			boolean found = false;
 
-	            if (!found) {
-	                System.out.println("Invalid Market ID. Please enter a valid Market ID from vendor.bin: ");
-	                while (!found) {
-	                    System.out.print("Enter Market ID: ");
-	                    while (!scanner.hasNextInt()) {
-	                        System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
-	                        scanner.next(); // Clear invalid input
-	                    }
-	                    market.setId(scanner.nextInt());
-	                    scanner.nextLine(); // Clear the buffer
+			// Market ID giriş ve doğrulama
+			System.out.print("Enter Market ID: ");
+			while (!scanner.hasNextInt()) {
+				System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
+				scanner.next(); // Geçersiz girdiyi temizle
+			}
+			market.setId(scanner.nextInt());
+			scanner.nextLine(); // Tamponu temizle
 
-	                    vendorRAF.seek(0);
-	                    while (vendorRAF.getFilePointer() < vendorRAF.length()) {
-	                        int vendorId = vendorRAF.readInt();
-	                        String vendorName = vendorRAF.readUTF();
-	                        if (vendorId == market.getId()) {
-	                            found = true;
-	                            break;
-	                        }
-	                    }
+			// Vendor dosyasından Market ID kontrolü
+			vendorRAF.seek(0);
+			while (vendorRAF.getFilePointer() < vendorRAF.length()) {
+				int vendorId = vendorRAF.readInt();
+				String vendorName = vendorRAF.readUTF();
+				if (vendorId == market.getId()) {
+					found = true;
+					break;
+				}
+			}
 
-	                    if (!found) {
-	                        System.out.println("Invalid Market ID. Please try again.");
-	                    }
-	                }
-	            }
+			if (!found) {
+				System.out.println("Invalid Market ID. Exiting function...");
+				return false; // Geçersiz girişle fonksiyonu sonlandır
+			}
 
-	            System.out.print("Enter Day (e.g., Monday): ");
-	            market.setDay(scanner.nextLine());
-	            while (!validateDay(market.getDay())) {
-	                System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
-	                market.setDay(scanner.nextLine());
-	            }
+			// Gün giriş ve doğrulama
+			System.out.print("Enter Day (e.g., Monday): ");
+			market.setDay(scanner.nextLine());
+			while (!validateDay(market.getDay())) {
+				System.out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+				market.setDay(scanner.nextLine());
+			}
 
-	            System.out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
-	            market.setHours(scanner.nextLine());
-	            while (!validateWorkingHours(market.getHours())) {
-	                System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
-	                market.setHours(scanner.nextLine());
-	            }
+			// Çalışma saatleri giriş ve doğrulama
+			System.out.print("Enter Working Hours (e.g., 09:00 - 18:00): ");
+			market.setHours(scanner.nextLine());
+			while (!validateWorkingHours(market.getHours())) {
+				System.out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+				market.setHours(scanner.nextLine());
+			}
 
-	            System.out.print("Enter Location: ");
-	            market.setLocation(scanner.nextLine());
+			// Lokasyon giriş
+			System.out.print("Enter Location: ");
+			market.setLocation(scanner.nextLine());
 
-	            marketHoursRAF.seek(marketHoursRAF.length());
-	            marketHoursRAF.writeInt(market.getId()); // Write Market ID
-	            marketHoursRAF.writeUTF(market.getDay()); // Write Day
-	            marketHoursRAF.writeUTF(market.getHours()); // Write Working Hours
-	            marketHoursRAF.writeUTF(market.getLocation()); // Write Location
-	            
-	            out.println("Market hours and location added successfully!");
+			// Dosyaya yazma
+			marketHoursRAF.seek(marketHoursRAF.length()); // Dosyanın sonuna git
+			marketHoursRAF.writeInt(market.getId()); // Market ID
+			marketHoursRAF.writeUTF(market.getDay()); // Gün
+			marketHoursRAF.writeUTF(market.getHours()); // Çalışma saatleri
+			marketHoursRAF.writeUTF(market.getLocation()); // Konum
 
-	            System.out.println("Market hours and location added successfully!");
-	            return true;
-	        } catch (IOException e) {
-	            System.out.println("Error: " + e.getMessage());
-	            e.printStackTrace();
-	            return false;
-	        }
-	    }
+			System.out.println("Market hours and location added successfully!");
+			return true;
 
-	    public static boolean validateDay(String day) {
-	        String[] validDays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
-	        for (String validDay : validDays) {
-	            if (validDay.equalsIgnoreCase(day)) {
-	                return true;
-	            }
-	        }
-	        return false;
-	    }
-
-	    public static boolean validateWorkingHours(String hours) {
-	        // Validate format and logic (e.g., "09:00 - 18:00")
-	        String[] parts = hours.split(" - ");
-	        if (parts.length != 2) {
-	            return false;
-	        }
-
-	        String[] startTime = parts[0].split(":");
-	        String[] endTime = parts[1].split(":");
-	        if (startTime.length != 2 || endTime.length != 2) {
-	            return false;
-	        }
-
-	        try {
-	            int startHour = Integer.parseInt(startTime[0]);
-	            int startMinute = Integer.parseInt(startTime[1]);
-	            int endHour = Integer.parseInt(endTime[0]);
-	            int endMinute = Integer.parseInt(endTime[1]);
-
-	            if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
-	                return false;
-	            }
-	            if (startMinute < 0 || startMinute > 59 || endMinute < 0 || endMinute > 59) {
-	                return false;
-	            }
-	            if (startHour > endHour || (startHour == endHour && startMinute >= endMinute)) {
-	                return false;
-	            }
-
-	            return true;
-	        } catch (NumberFormatException e) {
-	            return false;
-	        }
-	    }
-
-
-	    public static boolean updateMarketHoursAndLocation() {
-	        clearScreen();
-
-	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
-	            out.print("Enter Market ID to update: ");
-	            
-	            int marketId = scanner.nextInt();
-	            scanner.nextLine(); // Clear the buffer
-
-	            boolean found = false;
-
-	            while (file.getFilePointer() < file.length()) {
-	                long recordPosition = file.getFilePointer(); // Remember the record position
-	                MarketHours market = new MarketHours();
-	                
-	                try {
-	                    // Read a record
-	                    market.setId(file.readInt());
-	                    market.setDay(file.readUTF());
-	                    market.setHours(file.readUTF());
-	                    market.setLocation(file.readUTF());
-	                } catch (IOException e) {
-	                    System.out.println("Error reading record at position: " + recordPosition);
-	                    break;
-	                }
-	                // Display current record
-	                System.out.printf("Current Record: ID=%d, Day=%s, Hours=%s, Location=%s%n",
-	                        market.getId(), market.getDay(), market.getHours(), market.getLocation());
-
-	                if (market.getId() == marketId) {
-	                    found = true;
-
-	                    // Prompt user for new values
-	                    out.print("Enter new Day (e.g., Monday): ");
-	                    String day = scanner.nextLine();
-	                    while (!validateDay(day)) {
-	                        out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
-	                        day = scanner.nextLine();
-	                    }
-
-	                    out.print("Enter new Working Hours (e.g., 09:00 - 18:00): ");
-	                    String hours = scanner.nextLine();
-	                    while (!validateWorkingHours(hours)) {
-	                        out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
-	                        hours = scanner.nextLine();
-	                    }
-
-	                    out.print("Enter new Location: ");
-	                    String location = scanner.nextLine();
-
-	                    // Update the market object
-	                    market.setDay(day);
-	                    market.setHours(hours);
-	                    market.setLocation(location);
-
-	                    try {
-	                        // Write updated record back to the file
-	                        file.seek(recordPosition); // Go back to the record position
-	                        file.writeInt(market.getId());
-	                        file.writeUTF(market.getDay());
-	                        file.writeUTF(market.getHours());
-	                        file.writeUTF(market.getLocation());
-	                        out.println("Market hours and location updated successfully!");
-	                    } catch (IOException e) {
-	                        System.out.println("Error writing record at position: " + recordPosition);
-	                    }
-	                    break;
-	                }
-	            }
-
-	            if (!found) {
-	                out.printf("Market ID %d not found.%n", marketId);
-	            }
-	        } catch (IOException e) {
-	            out.println("Error accessing the market hours file: " + e.getMessage());
-	            e.printStackTrace();
-	            return false;
-	        }
-
-	        return true;
-	    }
-	    	
-	    public static boolean displayMarketHoursAndLocations() {
-	        try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "r")) {
-	            MarketHoursNode head = null;
-
-	            // Read all MarketHours from the file and insert into the XOR linked list
-	            while (file.getFilePointer() < file.length()) {
-	                try {
-	                    MarketHours market = MarketHours.readMarketHours(file);
-	                    if (market != null) {
-	                        head = insertXORList(head, market);
-	                    } else {
-	                        System.err.println("Error: Encountered null MarketHours while reading.");
-	                    }
-	                } catch (IOException e) {
-	                    System.err.println("Error reading MarketHours from file: " + e.getMessage());
-	                    continue; // Skip corrupted record
-	                }
-	            }
-
-	            // Check if the linked list is empty
-	            if (head == null) {
-	                System.out.println("No market hours available.");
-	                return true;
-	            }
-
-	            // Traverse and display the XOR linked list grouped by ID using BFS
-	            System.out.println("\n--- Market Hours and Locations (BFS Traversal) ---");
-	            Queue<MarketHoursNode> queue = new LinkedList<>();
-	            MarketHoursNode current = head;
-	            MarketHoursNode prev = null;
-	            queue.add(current);
-
-	            // BFS Traversal
-	            while (!queue.isEmpty()) {
-	                current = queue.poll();
-
-	                // Null kontrolü
-	                if (current == null || current.data == null) {
-	                    System.err.println("Error: Encountered a null node or data.");
-	                    continue;
-	                }
-
-	                // Display current node's information
-	                System.out.printf("\nMarket ID: %d\n", current.data.getId());
-	                System.out.printf("  Day: %s, Hours: %s, Location: %s\n",
-	                        current.data.getDay(), current.data.getHours(), current.data.getLocation());
-
-	                // Get the next node using XOR logic
-	                MarketHoursNode next = xorFunction(prev, current.xorPtr);
-
-	                if (next != null) {
-	                    queue.add(next);
-	                }
-
-	                // Move to the next node
-	                prev = current;
-	            }
-
-	            return true;
-
-	        } catch (IOException e) {
-	            System.err.println("Error opening market hours file: " + e.getMessage());
-	            return false;
-	        }
-	    }
+		} catch (IOException e) {
+			System.out.println("Error accessing files: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
+	}
 
 
 
-	    
+	public static boolean validateDay(String day) {
+		String[] validDays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
+		for (String validDay : validDays) {
+			if (validDay.equalsIgnoreCase(day)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-	    public static MarketHoursNode insertXORList(MarketHoursNode head, MarketHours data) {
-	        MarketHoursNode newNode = new MarketHoursNode(data);
-	        newNode.xorPtr = null;
 
-	        if (head == null) {
-	            return newNode; // Case when list is empty, return new node as head.
-	        }
+	public static boolean validateWorkingHours(String hours) {
+		String[] parts = hours.split(" - ");
+		if (parts.length != 2) {
+			return false;
+		}
 
-	        MarketHoursNode prev = null;
-	        MarketHoursNode curr = head;
-	        MarketHoursNode next;
+		String[] startTime = parts[0].split(":");
+		String[] endTime = parts[1].split(":");
+		if (startTime.length != 2 || endTime.length != 2) {
+			return false;
+		}
 
-	        while (curr != null) {
-	            next = xorFunction(prev, curr.xorPtr);
-	            if (data.getId() < curr.data.getId()) {
-	                newNode.xorPtr = xorFunction(prev, curr);
-	                if (prev != null) {
-	                    prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, curr), newNode);
-	                }
-	                curr.xorPtr = xorFunction(newNode, next);
-	                if (prev == null) {
-	                    head = newNode;
-	                }
-	                return head;
-	            }
-	            prev = curr;
-	            curr = next;
-	        }
+		try {
+			int startHour = Integer.parseInt(startTime[0]);
+			int startMinute = Integer.parseInt(startTime[1]);
+			int endHour = Integer.parseInt(endTime[0]);
+			int endMinute = Integer.parseInt(endTime[1]);
 
-	        // Insert new node at the end of the list
-	        prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, null), newNode);
-	        newNode.xorPtr = prev;
+			if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
+				return false;
+			}
+			if (startMinute < 0 || startMinute > 59 || endMinute < 0 || endMinute > 59) {
+				return false;
+			}
+			if (startHour > endHour || (startHour == endHour && startMinute >= endMinute)) {
+				return false;
+			}
 
-	        return head;
-	    }
-	    
-	    
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 
-	    public static void traverseXORListGroupedByID(MarketHoursNode head) {
-	        MarketHoursNode curr = head;
-	        MarketHoursNode prev = null;
-	        MarketHoursNode next;
-	        Scanner scanner = new Scanner(System.in);
 
-	        while (curr != null) {
-	            int currentID = curr.data.getId();
 
-	            // Display all entries with the same ID
-	            System.out.println("\n--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
-	            System.out.printf("\nID: %d\n", currentID);
-	            while (curr != null && curr.data.getId() == currentID) {
-	                System.out.printf("  Day: %s, Hours: %s, Location: %s\n",
-	                        curr.data.getDay(), curr.data.getHours(), curr.data.getLocation());
-	                next = xorFunction(prev, curr.xorPtr);
-	                prev = curr;
-	                curr = next;
-	            }
+	public static boolean updateMarketHoursAndLocation() {
+		clearScreen();
 
-	            // User interaction for next or previous group
-	            if (curr != null || prev != null) {
-	                System.out.print("\nEnter your choice (n/p/q): ");
-	                char choice = scanner.next().charAt(0);
+		try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "rw")) {
+			out.print("Enter Market ID to update: ");
+			int marketId = scanner.nextInt();
+			scanner.nextLine(); // Tamponu temizle
 
-	                if (choice == 'n') {
-	                    // Continue to next group (already set in curr)
-	                } else if (choice == 'p') {
-	                    while (prev != null && prev.data.getId() == currentID) {
-	                        next = xorFunction(prev.xorPtr, curr);
-	                        curr = prev;
-	                        prev = next;
-	                    }
+			boolean found = false;
 
-	                    if (prev != null) {
-	                        currentID = prev.data.getId();
-	                        while (prev != null && prev.data.getId() == currentID) {
-	                            next = xorFunction(prev.xorPtr, curr);
-	                            curr = prev;
-	                            prev = next;
-	                        }
-	                    } else {
-	                        System.out.println("You have reached the beginning of the list.");
-	                        curr = head;
-	                        prev = null;
-	                    }
-	                } else if (choice == 'q') {
-	                    break;
-	                } else {
-	                    System.out.println("Invalid choice. Please enter 'n', 'p', or 'q'.");
-	                }
-	            } else {
-	                System.out.println("You have reached the end of the list.");
-	            }
-	        }
-	    }
+			while (file.getFilePointer() < file.length()) {
+				long recordPosition = file.getFilePointer(); // Kayıt pozisyonunu al
+				MarketHours market = MarketHours.readFromFile(file); // Kaydı oku
 
-		 public static void addToXorMap(MarketHoursNode node) {
-		        xorMap.put(System.identityHashCode(node), node);
-		    }
-		 
+				if (market.getId() == marketId) {
+					found = true;
+
+					// Yeni verileri al
+					out.print("Enter new Day (e.g., Monday): ");
+					String day = scanner.nextLine();
+					while (!validateDay(day)) {
+						out.println("Invalid day. Please enter a valid day (e.g., Monday): ");
+						day = scanner.nextLine();
+					}
+
+					out.print("Enter new Working Hours (e.g., 09:00 - 18:00): ");
+					String hours = scanner.nextLine();
+					while (!validateWorkingHours(hours)) {
+						out.println("Invalid hours. Please enter valid hours (e.g., 09:00 - 18:00): ");
+						hours = scanner.nextLine();
+					}
+
+					out.print("Enter new Location: ");
+					String location = scanner.nextLine();
+
+					// Güncellenmiş verileri yaz
+					market.setDay(day);
+					market.setHours(hours);
+					market.setLocation(location);
+
+					file.seek(recordPosition); // Kayıt pozisyonuna dön
+					market.writeToFile(file);  // Güncel veriyi yaz
+					out.println("Market hours and location updated successfully!");
+					return true;
+				}
+			}
+
+			if (!found) {
+				out.printf("Market ID %d not found.%n", marketId);
+			}
+		} catch (IOException e) {
+			out.println("Error accessing the market hours file: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+
+
+
+	public static boolean displayMarketHoursAndLocations() {
+		try (RandomAccessFile file = new RandomAccessFile("marketHours.bin", "r")) {
+
+			if (file.length() == 0) {
+				System.out.println("No market hours available.");
+				return true;
+			}
+
+			System.out.println("\n--- Market Hours and Locations ---");
+			while (file.getFilePointer() < file.length()) {
+				try {
+					MarketHours market = MarketHours.readFromFile(file); // Veriyi oku
+					System.out.printf("Market ID: %d\nDay: %s\nWorking Hours: %s\nLocation: %s\n\n",
+							market.getId(), market.getDay(), market.getHours(), market.getLocation());
+				} catch (IOException e) {
+					System.err.println("Error reading MarketHours from file: " + e.getMessage());
+					break; // Okuma hatasında döngüyü kır
+				}
+			}
+
+			return true;
+
+		} catch (IOException e) {
+			System.err.println("Error opening market hours file: " + e.getMessage());
+			return false;
+		}
+	}
+
+
+
+
+
+//	public static MarketHoursNode insertXORList(MarketHoursNode head, MarketHours data) {
+//	        MarketHoursNode newNode = new MarketHoursNode(data);
+//	        newNode.xorPtr = null;
+//
+//	        if (head == null) {
+//	            return newNode; // Case when list is empty, return new node as head.
+//	        }
+//
+//	        MarketHoursNode prev = null;
+//	        MarketHoursNode curr = head;
+//	        MarketHoursNode next;
+//
+//	        while (curr != null) {
+//	            next = xorFunction(prev, curr.xorPtr);
+//	            if (data.getId() < curr.data.getId()) {
+//	                newNode.xorPtr = xorFunction(prev, curr);
+//	                if (prev != null) {
+//	                    prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, curr), newNode);
+//	                }
+//	                curr.xorPtr = xorFunction(newNode, next);
+//	                if (prev == null) {
+//	                    head = newNode;
+//	                }
+//	                return head;
+//	            }
+//	            prev = curr;
+//	            curr = next;
+//	        }
+//
+//	        // Insert new node at the end of the list
+//	        prev.xorPtr = xorFunction(xorFunction(prev.xorPtr, null), newNode);
+//	        newNode.xorPtr = prev;
+//
+//	        return head;
+//	    }
+//
+//
+//
+//	    public static void traverseXORListGroupedByID(MarketHoursNode head) {
+//	        MarketHoursNode curr = head;
+//	        MarketHoursNode prev = null;
+//	        MarketHoursNode next;
+//	        Scanner scanner = new Scanner(System.in);
+//
+//	        while (curr != null) {
+//	            int currentID = curr.data.getId();
+//
+//	            // Display all entries with the same ID
+//	            System.out.println("\n--- Market Hours and Locations (Use 'n' for next ID group, 'p' for previous ID group, 'q' to quit) ---");
+//	            System.out.printf("\nID: %d\n", currentID);
+//	            while (curr != null && curr.data.getId() == currentID) {
+//	                System.out.printf("  Day: %s, Hours: %s, Location: %s\n",
+//	                        curr.data.getDay(), curr.data.getHours(), curr.data.getLocation());
+//	                next = xorFunction(prev, curr.xorPtr);
+//	                prev = curr;
+//	                curr = next;
+//	            }
+//
+//	            // User interaction for next or previous group
+//	            if (curr != null || prev != null) {
+//	                System.out.print("\nEnter your choice (n/p/q): ");
+//	                char choice = scanner.next().charAt(0);
+//
+//	                if (choice == 'n') {
+//	                    // Continue to next group (already set in curr)
+//	                } else if (choice == 'p') {
+//	                    while (prev != null && prev.data.getId() == currentID) {
+//	                        next = xorFunction(prev.xorPtr, curr);
+//	                        curr = prev;
+//	                        prev = next;
+//	                    }
+//
+//	                    if (prev != null) {
+//	                        currentID = prev.data.getId();
+//	                        while (prev != null && prev.data.getId() == currentID) {
+//	                            next = xorFunction(prev.xorPtr, curr);
+//	                            curr = prev;
+//	                            prev = next;
+//	                        }
+//	                    } else {
+//	                        System.out.println("You have reached the beginning of the list.");
+//	                        curr = head;
+//	                        prev = null;
+//	                    }
+//	                } else if (choice == 'q') {
+//	                    break;
+//	                } else {
+//	                    System.out.println("Invalid choice. Please enter 'n', 'p', or 'q'.");
+//	                }
+//	            } else {
+//	                System.out.println("You have reached the end of the list.");
+//	            }
+//	        }
+//	    }
+//
+//		 public static void addToXorMap(MarketHoursNode node) {
+//		        xorMap.put(System.identityHashCode(node), node);
+//		    }
+//
 		 private static final Map<Integer, MarketHoursNode> xorMap = new HashMap<>();
+//
+//
+//		    private static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
+//		        if (a == null && b == null) {
+//		            return null;
+//		        }
+//		        if (a == null) {
+//		            return b;
+//		        }
+//		        if (b == null) {
+//		            return a;
+//		        }
+//		        int xorKey = System.identityHashCode(a) ^ System.identityHashCode(b);
+//		        return xorMap.get(xorKey);
+//		    }
 
 
-		    private static MarketHoursNode xorFunction(MarketHoursNode a, MarketHoursNode b) {
-		        if (a == null && b == null) {
-		            return null;
-		        }
-		        if (a == null) {
-		            return b;
-		        }
-		        if (b == null) {
-		            return a;
-		        }
-		        int xorKey = System.identityHashCode(a) ^ System.identityHashCode(b);
-		        return xorMap.get(xorKey);
-		    }
+
+
 	    public static boolean searchProductsOrEnterKeyword() {
 	        int choice;
 

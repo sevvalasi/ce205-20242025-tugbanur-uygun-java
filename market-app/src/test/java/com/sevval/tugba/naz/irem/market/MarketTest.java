@@ -159,7 +159,7 @@ public class MarketTest {
   @Test
   public void testUserAuthentication1() {
     // Arrange
-    String input = "2\nnaz\n1234\n\n1\na\n4"; // Simulated user input
+    String input = "2\nnaz\n1234\n\n1\nnaz\n1234\n0\n4\n"; // Simulated user input
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
@@ -290,17 +290,17 @@ public class MarketTest {
 
 
 
-//  @Test
-//  public void testuserAuthenticationLogin() {
-//    // Arrange
-//    String input = "1\nnaz\n1818\n0\n4\n"; // Choose option 0 to exit
-//    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-//    System.setIn(inputStream);
-//    Market market = new Market(new Scanner(System.in), System.out);
-//    // Act
-//    boolean result = Market.userAuthentication();
-//
-//  }
+  @Test
+  public void testuserAuthenticationLogin() {
+    // Arrange
+    String input = "1\nnaz\n1818\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.userAuthentication();
+
+  }
 
   @Test
   public void testAddVendor() {
@@ -317,12 +317,12 @@ public class MarketTest {
   @Test
   public void testUpdateVendor() {
     // Arrange
-    String input = "2\n567269\nelmaa\n0\n0\n4"; // Choose option 0 to exit
+    String input = "1\n1\nee\n2\nee\neee\n0\n0\n4\n"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
-    boolean result = Market.listingOfLocalVendors();
+    boolean result = Market.mainMenu();
 
   }
 
@@ -354,12 +354,12 @@ public class MarketTest {
   @Test
   public void testaddProduct() {
     // Arrange
-    String input = "1\n655538\nelma\n12\n122\nyaz\n\n0\n0\n4"; // Choose option 0 to exit
+    String input = "2\n1\n1\nnaz\n12\n12\nyaz\n\n0\n0\n4"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
-    boolean result = Market.listingOfLocalProducts();
+    boolean result = Market.mainMenu();
 
   }
 
@@ -376,12 +376,12 @@ public class MarketTest {
   @Test
   public void testupdateProduct() {
     // Arrange
-    String input = "2\nelma\nelmaa\n11\n12\nkış\n0\n0\n4"; // Choose option 0 to exit
+    String input = "2\n1\n1\naa\n12\n12\nyaz\n\n2\naa\naaa\n12\n13\nyaz\n\n0\n0\n4"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
-    boolean result = Market.listingOfLocalProducts();
+    boolean result = Market.mainMenu();
 
   }
 
@@ -431,6 +431,168 @@ public class MarketTest {
     assertTrue(output.contains("Using Linear Probing")); // Check collision resolution strategy
   }
 
+  @Test
+  public void testListingOfLocalVendorsandProducts2() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "2\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+  @Test
+  public void testListingOfLocalVendorsandProducts3() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "3\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+  @Test
+  public void testListingOfLocalVendorsandProducts4() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "4\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+  @Test
+  public void testListingOfLocalVendorsandProducts5() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "5\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+  @Test
+  public void testListingOfLocalVendorsandProducts6() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "6\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+  @Test
+  public void testListingOfLocalVendorsandProducts7() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "7\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
   // Helper method to create vendor data for testing
   private void createVendorFileForTest(String fileName, Vendor... vendors) throws IOException {
     try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw")) {
@@ -467,24 +629,24 @@ public class MarketTest {
   @Test
   public void testpriceComparison() {
     // Arrange
-    String input = "1\nelma\n\n0\n0\n4"; // Choose option 0 to exit
+    String input = "3\n1\naa\n\n\n0\n0\n4"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
-    boolean result = Market.priceComparison();
+    boolean result = Market.mainMenu();
 
 }
 
   @Test
   public void testpriceComparison2() {
     // Arrange
-    String input = "2\nelma\n\n0\n0\n4"; // Choose option 0 to exit
+    String input = "2\n1\n1\naa\n12\n12\nyaz\n\n0\n3\n1\naa\n\n\n2\n0\n0\n4\n"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
-    boolean result = Market.priceComparison();
+    boolean result = Market.mainMenu();
 
   }
 
@@ -778,9 +940,43 @@ public class MarketTest {
 
 
   @Test
-  public void testmarketHoursAndLocations1() {
+  public void testaddmarketHoursAndLocations1() {
     // Arrange
-    String input = "1\n170369\nmonday\n11:00 - 12:00\nev\n0\n0\n4\n"; // Simulated user input
+    String input = "4\n1\n1\nmonday\n11:00 - 12:00\nev\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
+
+
+  }
+
+  @Test
+  public void testaddmarketHoursAndLocations1Invalid() {
+    // Arrange
+    String input = "4\n1\n123\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
+
+
+  }
+
+
+
+  @Test
+  public void testUpdateMarketHoursAndLocations() {
+    // Arrange
+    String input = "4\n1\n1\nmonday\n11:00 - 12:00\nev\n2\n1\nmonday\n02:02 - 02:03\nev\n3\n0\n0\n4\n"; // Simulated user input
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
@@ -794,23 +990,7 @@ public class MarketTest {
   }
 
   @Test
-  public void testmarketHoursAndLocations2() {
-    // Arrange
-    String input = "2\n170369\nmtuesday\n11:00 - 13:00\naraba\n0\n0\n4\n"; // Simulated user input
-    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-
-    System.setIn(inputStream); // Simulate user input
-    System.setOut(new PrintStream(outContent)); // Capture output
-    Market market = new Market(new Scanner(System.in), System.out);
-    // Act
-    boolean result = Market.marketHoursAndLocations();
-
-
-  }
-
-  @Test
-  public void testmarketHoursAndLocations3() {
+  public void testviewmarketHoursAndLocations3() {
     // Arrange
     String input = "3\n0\n0\n4\n"; // Simulated user input
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
@@ -821,6 +1001,22 @@ public class MarketTest {
     Market market = new Market(new Scanner(System.in), System.out);
     // Act
     boolean result = Market.marketHoursAndLocations();
+
+
+  }
+
+  @Test
+  public void testXorValid() {
+    // Arrange
+    String input = "1\n1\na\n1\nb\n1\nc\n4\nn\nn\nn\nn\np\ns\nq\nx\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
 
 
   }
@@ -957,6 +1153,31 @@ public class MarketTest {
     boolean result = Market.marketHoursAndLocations();
 
   }
+
+  @Test
+  public void testUserAuthenticationInvalid() {
+    // Arrange
+    String input = "11\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.userAuthentication();
+
+  }
+
+  @Test
+  public void testLoginInvalid() {
+    // Arrange
+    String input = "1\nasdasdasd\nasdasdasdasd\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.userAuthentication();
+
+  }
+
 
 
 }

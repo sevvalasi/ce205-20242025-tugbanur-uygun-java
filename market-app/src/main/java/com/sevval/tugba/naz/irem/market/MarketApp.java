@@ -17,7 +17,7 @@ import java.util.Scanner;
  *
  * @class MarketApp
  * @brief This class represents the main application class for the Market
- *        App.
+ 1*        App.
  * @details The MarketApp class provides the entry point for the Market
  *          App. It initializes the necessary components, performs calculations,
  *          and handles exceptions.
