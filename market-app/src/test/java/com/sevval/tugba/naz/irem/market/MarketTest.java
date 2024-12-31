@@ -91,6 +91,9 @@ public class MarketTest {
     }
   }
 
+
+
+
   private void createTestHuffFile(String fileName, String username, String password) {
     try (RandomAccessFile file = new RandomAccessFile(fileName, "rw")) {
       // Kullanıcı adı ve şifreyi dosyaya yaz
@@ -189,6 +192,10 @@ public class MarketTest {
     boolean result = Market.userAuthentication();
 
   }
+
+
+
+
 
   @Test
   public void testMainMenu() {
@@ -1271,6 +1278,21 @@ public class MarketTest {
 
 
   }
+  @Test
+  public void testEnterSearchProducts1() {
+    // Arrange
+    String input = "1\n0\n\n0\n0n\n4\n"; // Case 1: Search Products, then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.enterKeywords();
+
+
+  }
 
 
   @Test
@@ -1603,6 +1625,196 @@ public class MarketTest {
     assertNull(doubleLinkedList.getHead());
     assertNull(doubleLinkedList.getTail());
   }
+
+  @Test
+  public void testMinHeapInitialization() {
+    // Arrange
+    int capacity = 10;
+
+    // Act
+    MinHeap minHeap = new MinHeap(capacity);
+
+    // Assert
+    assertNotNull("Heap should not be null", minHeap);
+    assertEquals("Heap size should be 0 initially", 0, minHeap.size);
+    assertEquals("Heap capacity should match the given value", capacity, minHeap.capacity);
+    assertNotNull("Heap array should not be null", minHeap.array);
+    assertEquals("Heap array length should match the capacity", capacity, minHeap.array.length);
+  }
+
+
+//  @Test
+//  public void testDefaultConstructor2() {
+//    // Arrange & Act
+//    HashTableEntry entry = new HashTableEntry();
+//
+//    // Assert
+//    assertEquals("Default key should be -1", -1, entry.getKey());
+//    assertFalse("Default isOccupied should be false", entry.isOccupied());
+//  }
+
+  @Test
+  public void testParameterizedConstructor() {
+    // Arrange
+    boolean isOccupied = true;
+    int key = 42;
+
+    // Act
+    HashTableEntry entry = new HashTableEntry(isOccupied, key);
+
+    // Assert
+    assertEquals("Key should match the value passed in constructor", key, entry.getKey());
+    assertTrue("isOccupied should match the value passed in constructor", entry.isOccupied());
+  }
+
+  @Test
+  public void testSetKey() {
+    // Arrange
+    HashTableEntry entry = new HashTableEntry();
+    int newKey = 99;
+
+    // Act
+    entry.setKey(newKey);
+
+    // Assert
+    assertEquals("Key should be updated to the new value", newKey, entry.getKey());
+  }
+
+  @Test
+  public void testSetOccupied() {
+    // Arrange
+    HashTableEntry entry = new HashTableEntry();
+
+    // Act
+    entry.setOccupied(true);
+
+    // Assert
+    assertTrue("isOccupied should be true after calling setOccupied(true)", entry.isOccupied());
+
+    // Act
+    entry.setOccupied(false);
+
+    // Assert
+    assertFalse("isOccupied should be false after calling setOccupied(false)", entry.isOccupied());
+  }
+
+  @Test
+  public void testToString() {
+    // Arrange
+    HashTableEntry entry = new HashTableEntry(true, 101);
+
+    // Act
+    String result = entry.toString();
+
+    // Assert
+    assertEquals("String representation should match", "Key: 101, Is Occupied: true", result);
+  }
+
+
+
+  @Test
+  public void testDefaultConstructor1() {
+    // Arrange & Act
+    OverflowEntry entry = new OverflowEntry();
+
+    // Assert
+    assertEquals("Default key should be -1", -1, entry.getKey());
+    assertFalse("Default isOccupied should be false", entry.isOccupied());
+  }
+
+  @Test
+  public void testParameterizedConstructor1() {
+    // Arrange
+    boolean isOccupied = true;
+    int key = 42;
+
+    // Act
+    OverflowEntry entry = new OverflowEntry(isOccupied, key);
+
+    // Assert
+    assertEquals("Key should match the value passed in constructor", key, entry.getKey());
+    assertTrue("isOccupied should match the value passed in constructor", entry.isOccupied());
+  }
+
+  @Test
+  public void testSetOccupied1() {
+    // Arrange
+    OverflowEntry entry = new OverflowEntry();
+
+    // Act
+    entry.setOccupied(true);
+
+    // Assert
+    assertTrue("isOccupied should be true after calling setOccupied(true)", entry.isOccupied());
+
+    // Act
+    entry.setOccupied(false);
+
+    // Assert
+    assertFalse("isOccupied should be false after calling setOccupied(false)", entry.isOccupied());
+  }
+
+  @Test
+  public void testSetKey1() {
+    // Arrange
+    OverflowEntry entry = new OverflowEntry();
+    int newKey = 100;
+
+    // Act
+    entry.setKey(newKey);
+
+    // Assert
+    assertEquals("Key should be updated to the new value", newKey, entry.getKey());
+  }
+
+  @Test
+  public void testToString1() {
+    // Arrange
+    OverflowEntry entry = new OverflowEntry(true, 101);
+
+    // Act
+    String result = entry.toString();
+
+    // Assert
+    assertEquals("String representation should match expected format",
+            "Key: 101, Is Occupied: true", result);
+  }
+
+
+  @Test
+  public void testConstructorWithData() {
+    // Arrange
+    MarketHours mockData = new MarketHours(); // Ensure this matches your constructor
+    mockData.setId(647617); // Use setter to initialize the object
+    mockData.setDay("Monday");
+    mockData.setHours("11:00 - 12:00");
+    mockData.setLocation("ev");
+
+    // Act
+    MarketHoursNode node = new MarketHoursNode(mockData);
+
+    // Assert
+    assertNotNull("Node should not be null", node);
+    assertEquals("Data should match the initialized MarketHours", mockData, node.data);
+    assertNull("xorPtr should be null", node.xorPtr);
+  }
+
+
+  @Test
+  public void testConstructorWithXorHash() {
+    // Arrange
+    int xorHash = 12345;
+
+    // Act
+    MarketHoursNode node = new MarketHoursNode(xorHash);
+
+    // Assert
+    assertNotNull("Node should not be null", node);
+    // No specific functionality to test here since this constructor does nothing
+    assertNull("Data should be null", node.data);
+    assertNull("xorPtr should be null", node.xorPtr);
+  }
+
 
 
 
