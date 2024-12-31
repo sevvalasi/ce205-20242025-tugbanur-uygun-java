@@ -44,9 +44,14 @@ public class MarketTest {
     new File(productFile).delete();
     new File(marketHoursFile).delete();
   }
-
+  private Queue queue;
+  private DoubleLinkedList doubleLinkedList;
   @Before
   public void setUp() throws Exception {
+
+    queue = new Queue();
+    doubleLinkedList = new DoubleLinkedList();
+
   }
 
   @After
@@ -302,6 +307,9 @@ public class MarketTest {
 
   }
 
+
+
+
   @Test
   public void testAddVendor() {
     // Arrange
@@ -318,6 +326,21 @@ public class MarketTest {
   public void testUpdateVendor() {
     // Arrange
     String input = "1\n1\nee\n2\nee\neee\n0\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
+
+  }
+
+
+
+
+  @Test
+  public void testlistingOfLocalVendorsInvalid() {
+    // Arrange
+    String input = "1\n123\n0\n0\n4\n"; // Choose option 0 to exit
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
     Market market = new Market(new Scanner(System.in), System.out);
@@ -362,6 +385,20 @@ public class MarketTest {
     boolean result = Market.mainMenu();
 
   }
+
+
+  @Test
+  public void testaddProductEror() {
+    // Arrange
+    String input = "2\n1\n1\nnaz\n12\n12\nyaz\n\n1\n123456\n\n0\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
+
+  }
+
 
   // Helper method to create vendor data for testing
   private void createVendorFileForTest(String fileName, int vendorId, String vendorName) throws IOException {
@@ -593,6 +630,35 @@ public class MarketTest {
 
   }
 
+
+  @Test
+  public void testListingOfLocalVendorsandProductsInvalid() throws Exception {
+    // Arrange
+    String vendorFileName = "vendor.bin";
+    String productFileName = "products.bin";
+
+    // Create dummy vendor and product data for the test
+    createVendorFileForTest(vendorFileName, new Vendor(1, "Vendor A"), new Vendor(2, "Vendor B"));
+    createProductFileForTest(productFileName,
+            new Product(1, "Product X", 100.0, 10, "Summer"),
+            new Product(1, "Product Y", 200.0, 5, "Winter"),
+            new Product(2, "Product Z", 300.0, 20, "Spring")
+    );
+
+    // Simulate user input: Choose a strategy and exit
+    String input = "474\n"; // Select "Linear Probing" and then Exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    boolean result = Market.listingOfLocalVendorsandProducts();
+
+  }
+
+
   // Helper method to create vendor data for testing
   private void createVendorFileForTest(String fileName, Vendor... vendors) throws IOException {
     try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw")) {
@@ -612,6 +678,13 @@ public class MarketTest {
       }
     }
   }
+
+
+
+
+
+
+
 
   @Test
   public void testReturnToMenuExit() {
@@ -939,6 +1012,25 @@ public class MarketTest {
   }
 
 
+
+  @Test
+  public void testmarketHoursAndLocationsInvalid1() {
+    // Arrange
+    String input = "1\nahhaha\n0\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.marketHoursAndLocations();
+
+
+  }
+
+
+
   @Test
   public void testaddmarketHoursAndLocations1() {
     // Arrange
@@ -955,6 +1047,9 @@ public class MarketTest {
 
   }
 
+
+
+
   @Test
   public void testaddmarketHoursAndLocations1Invalid() {
     // Arrange
@@ -968,6 +1063,18 @@ public class MarketTest {
     // Act
     boolean result = Market.mainMenu();
 
+
+  }
+
+  @Test
+  public void testmarketHoursAndLocationsInvalidInput2() {
+    // Arrange
+    String input = "adkdk\n0\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.marketHoursAndLocations();
 
   }
 
@@ -989,6 +1096,24 @@ public class MarketTest {
 
   }
 
+
+  @Test
+  public void testUpdateMarketHoursAndLocationsInvalid() {
+    // Arrange
+    String input = "4\n1\n1\nmonday\n11:00 - 12:00\nev\n2\n3939393\nmonday\n02:02 - 02:03\nev\n3\n0\n0\n4\n"; // Simulated user input
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.marketHoursAndLocations();
+
+
+  }
+
+
   @Test
   public void testviewmarketHoursAndLocations3() {
     // Arrange
@@ -1004,6 +1129,7 @@ public class MarketTest {
 
 
   }
+
 
   @Test
   public void testXorValid() {
@@ -1045,6 +1171,24 @@ public class MarketTest {
     // Act
     boolean result = Market.marketHoursAndLocations();
 
+  }
+  @Test
+  public void testInvalidOption() {
+    // Arrange
+    String input = "5\n0\n"; // 5 geçersiz bir seçenek
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+
+    System.setIn(inputStream); // Simulate user input
+    System.setOut(new PrintStream(outContent)); // Capture output
+    Market market = new Market(new Scanner(System.in), System.out);
+
+    // Act
+    boolean result = Market.searchProductsOrEnterKeyword();
+
+    // Assert
+    String expectedOutput = "Invalid option. Please try again.\n";
+    assertTrue(outContent.toString().contains(expectedOutput));
   }
 
     @Test
@@ -1108,6 +1252,9 @@ public class MarketTest {
 
 
   }
+
+
+
 
   @Test
   public void testenterSearchProducts() {
@@ -1177,6 +1324,286 @@ public class MarketTest {
     boolean result = Market.userAuthentication();
 
   }
+
+//
+//  @Test
+//  public void testmainMenuInvalid() {
+//    // Arrange
+//    String input = "3\n334\n4\n"; // Choose option 0 to exit
+//    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+//    System.setIn(inputStream);
+//    Market market = new Market(new Scanner(System.in), System.out);
+//    // Act
+//    boolean result = Market.userAuthentication();
+//
+//  }
+//
+
+
+  @Test
+  public void testVendorPop() {
+    // Arrange
+    String input = "1\nasdasdasd\nasdasdasdasd\n0\n4\n"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.userAuthentication();
+
+  }
+
+  @Test
+  public void testIsQueueEmpty() {
+    assertTrue("Queue should be empty after initialization", queue.isQueueEmpty());
+
+    Vendor vendor = new Vendor(1, "Vendor1");
+    queue.enqueue(vendor);
+    assertFalse("Queue should not be empty after adding a vendor", queue.isQueueEmpty());
+  }
+
+  @Test
+  public void testEnqueueDequeue() {
+    Vendor vendor1 = new Vendor(1, "Vendor1");
+    Vendor vendor2 = new Vendor(2, "Vendor2");
+
+    queue.enqueue(vendor1);
+    queue.enqueue(vendor2);
+
+    Vendor dequeuedVendor1 = queue.dequeue();
+    assertEquals("Dequeued vendor should be Vendor1", vendor1, dequeuedVendor1);
+
+    Vendor dequeuedVendor2 = queue.dequeue();
+    assertEquals("Dequeued vendor should be Vendor2", vendor2, dequeuedVendor2);
+
+    assertTrue("Queue should be empty after dequeuing all vendors", queue.isQueueEmpty());
+  }
+
+  @Test
+  public void testDequeueFromEmptyQueue() {
+    Vendor dequeuedVendor = queue.dequeue();
+    assertEquals("Dequeuing from an empty queue should return an empty Vendor object", 0, dequeuedVendor.getId());
+    assertEquals("Dequeuing from an empty queue should return an empty Vendor object", "", dequeuedVendor.getName());
+  }
+
+  @Test
+  public void testFreeQueue() {
+    Vendor vendor1 = new Vendor(1, "Vendor1");
+    Vendor vendor2 = new Vendor(2, "Vendor2");
+
+    queue.enqueue(vendor1);
+    queue.enqueue(vendor2);
+
+    queue.freeQueue();
+
+    assertTrue("Queue should be empty after calling freeQueue", queue.isQueueEmpty());
+  }
+
+
+    @Test
+    public void testConstructor() {
+      // Create a Vendor object
+      Vendor vendor = new Vendor(1, "Vendor1");
+
+      // Create a StackNode with the Vendor object
+      StackNode node = new StackNode(vendor);
+
+      // Verify that the vendor object is correctly assigned
+      assertNotNull(node.vendor);
+      assertEquals(1, node.vendor.getId());
+      assertEquals("Vendor1", node.vendor.getName());
+
+      // Verify that the next pointer is null
+      assertNull(node.next);
+    }
+
+    @Test
+    public void testNextNodeLink() {
+      // Create two Vendor objects
+      Vendor vendor1 = new Vendor(1, "Vendor1");
+      Vendor vendor2 = new Vendor(2, "Vendor2");
+
+      // Create two StackNodes
+      StackNode node1 = new StackNode(vendor1);
+      StackNode node2 = new StackNode(vendor2);
+
+      // Link the nodes
+      node1.next = node2;
+
+      // Verify that node1's next points to node2
+      assertNotNull(node1.next);
+      assertEquals(node2, node1.next);
+      assertEquals("Vendor2", node1.next.vendor.getName());
+    }
+
+
+
+
+  @Test
+  public void testDefaultConstructor() {
+    // Create a new BPlusTreeNode
+    BPlusTreeNode node = new BPlusTreeNode();
+
+    // Verify the default properties
+    assertTrue(node.getIsLeaf());
+    assertNull(node.getNext());
+    assertEquals(0, node.getKeyCount());
+
+    // Verify that keys and children arrays are initialized
+    for (int i = 0; i < 4; i++) {
+      assertEquals(0, node.getKey(i));
+      assertNull(node.getChild(i));
+    }
+
+    // Verify the extra child slot in children array
+    assertNull(node.getChild(4));
+  }
+
+  @Test
+  public void testConstructorWithLeafParameter() {
+    // Create a non-leaf node
+    BPlusTreeNode node = new BPlusTreeNode(false);
+
+    // Verify the properties
+    assertFalse(node.getIsLeaf());
+    assertEquals(0, node.getKeyCount());
+    assertNull(node.getNext());
+  }
+
+  @Test
+  public void testSetAndGetKeys() {
+    // Create a node and set keys
+    BPlusTreeNode node = new BPlusTreeNode();
+    node.setKey(0, 10);
+    node.setKey(1, 20);
+
+    // Verify keys are set correctly
+    assertEquals(10, node.getKey(0));
+    assertEquals(20, node.getKey(1));
+  }
+
+  @Test
+  public void testSetAndGetChildren() {
+    // Create nodes and set child relationships
+    BPlusTreeNode parent = new BPlusTreeNode(false);
+    BPlusTreeNode child1 = new BPlusTreeNode();
+    BPlusTreeNode child2 = new BPlusTreeNode();
+
+    parent.setChild(0, child1);
+    parent.setChild(1, child2);
+
+    // Verify children are set correctly
+    assertEquals(child1, parent.getChild(0));
+    assertEquals(child2, parent.getChild(1));
+  }
+
+  @Test
+  public void testSetAndGetNext() {
+    // Create nodes and set the next relationship
+    BPlusTreeNode node1 = new BPlusTreeNode();
+    BPlusTreeNode node2 = new BPlusTreeNode();
+
+    node1.setNext(node2);
+
+    // Verify next is set correctly
+    assertEquals(node2, node1.getNext());
+  }
+
+  @Test
+  public void testSetAndGetKeyCount() {
+    // Create a node and set the key count
+    BPlusTreeNode node = new BPlusTreeNode();
+    node.setKeyCount(3);
+
+    // Verify key count is set correctly
+    assertEquals(3, node.getKeyCount());
+  }
+
+  @Test
+  public void testLeafNodeProperties() {
+    // Create a leaf node
+    BPlusTreeNode leafNode = new BPlusTreeNode(true);
+
+    // Verify it is a leaf and has no children by default
+    assertTrue(leafNode.getIsLeaf());
+    for (int i = 0; i < 5; i++) {
+      assertNull(leafNode.getChild(i));
+    }
+  }
+
+
+  @Test
+  public void testInsertSorted() {
+    Vendor vendor1 = new Vendor(3, "Vendor3");
+    Vendor vendor2 = new Vendor(1, "Vendor1");
+    Vendor vendor3 = new Vendor(2, "Vendor2");
+
+    doubleLinkedList.insertSorted(vendor1);
+    doubleLinkedList.insertSorted(vendor2);
+    doubleLinkedList.insertSorted(vendor3);
+
+    DoubleLinkedListNode current = doubleLinkedList.getHead();
+    assertEquals(1, current.getVendor().getId()); // First node
+    current = current.getNext();
+    assertEquals(2, current.getVendor().getId()); // Second node
+    current = current.getNext();
+    assertEquals(3, current.getVendor().getId()); // Third node
+    assertNull(current.getNext());
+  }
+
+  @Test
+  public void testDisplayForward() {
+    Vendor vendor1 = new Vendor(3, "Vendor3");
+    Vendor vendor2 = new Vendor(1, "Vendor1");
+    Vendor vendor3 = new Vendor(2, "Vendor2");
+
+    doubleLinkedList.insertSorted(vendor1);
+    doubleLinkedList.insertSorted(vendor2);
+    doubleLinkedList.insertSorted(vendor3);
+
+    // Capture console output (optional)
+    doubleLinkedList.displayForward();
+
+    DoubleLinkedListNode current = doubleLinkedList.getHead();
+    assertEquals("Vendor1", current.getVendor().getName());
+    current = current.getNext();
+    assertEquals("Vendor2", current.getVendor().getName());
+    current = current.getNext();
+    assertEquals("Vendor3", current.getVendor().getName());
+  }
+
+  @Test
+  public void testDisplayBackward() {
+    Vendor vendor1 = new Vendor(3, "Vendor3");
+    Vendor vendor2 = new Vendor(1, "Vendor1");
+    Vendor vendor3 = new Vendor(2, "Vendor2");
+
+    doubleLinkedList.insertSorted(vendor1);
+    doubleLinkedList.insertSorted(vendor2);
+    doubleLinkedList.insertSorted(vendor3);
+
+    // Capture console output (optional)
+    doubleLinkedList.displayBackward();
+
+    DoubleLinkedListNode current = doubleLinkedList.getTail();
+
+  }
+
+  @Test
+  public void testClear() {
+    Vendor vendor1 = new Vendor(3, "Vendor3");
+    Vendor vendor2 = new Vendor(1, "Vendor1");
+    Vendor vendor3 = new Vendor(2, "Vendor2");
+
+    doubleLinkedList.insertSorted(vendor1);
+    doubleLinkedList.insertSorted(vendor2);
+    doubleLinkedList.insertSorted(vendor3);
+
+    doubleLinkedList.clear();
+
+    assertNull(doubleLinkedList.getHead());
+    assertNull(doubleLinkedList.getTail());
+  }
+
 
 
 
