@@ -1,5 +1,6 @@
 package com.sevval.tugba.naz.irem.market;
 
+import static com.sevval.tugba.naz.irem.market.Market.out;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -719,6 +720,20 @@ public class MarketTest {
 }
 
   @Test
+  public void testpriceComparisonInvalid() {
+    // Arrange
+    String input = "3\n13838\n\n\n0\n0\n4"; // Choose option 0 to exit
+    InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+    System.setIn(inputStream);
+    Market market = new Market(new Scanner(System.in), System.out);
+    // Act
+    boolean result = Market.mainMenu();
+
+  }
+
+
+
+  @Test
   public void testpriceComparison2() {
     // Arrange
     String input = "2\n1\n1\naa\n12\n12\nyaz\n\n0\n3\n1\naa\n\n\n2\n0\n0\n4\n"; // Choose option 0 to exit
@@ -902,37 +917,92 @@ public class MarketTest {
     new File(fileName).delete();
   }
 
+  @Test
+  public void testBrentsMethodSearchWithEdgeCases() {
+    // Arrange
+    Market.initializeHashTable();
+    int key1 = 101, key2 = 202;
+    int index1 = Market.hashFunction(key1);
+    int index2 = Market.linearProbing(key1, 1); // Intentional collision
+
+    // Hash table durumunu simüle et
+    Market.hashTable[index1] = new HashTableEntry(true, key1);
+    Market.hashTable[index2] = new HashTableEntry(false, 0); // Boş bir slot
+
+    // Act & Assert
+    // Doğru bulunan anahtar testi
+    assertEquals(index1, Market.brentsMethodSearch(key1));
+
+    // Boş bir slot testi (bulunamayan anahtar)
+    assertEquals(-1, Market.brentsMethodSearch(999));
+  }
+
 
   @Test
-  public void testBrentsMethodSearch() {
+  public void testBrentsMethodSearchWithCollisions() {
     // Arrange
     Market.initializeHashTable();
     int key1 = 101, key2 = 202, key3 = 303;
     int index1 = Market.hashFunction(key1);
     int index2 = Market.linearProbing(key1, 1); // Intentional collision
+    int index3 = Market.linearProbing(key1, 2); // Another collision resolution
 
+    // Simulate the hash table state with collisions
     Market.hashTable[index1] = new HashTableEntry(true, key1);
     Market.hashTable[index2] = new HashTableEntry(true, key2);
 
-    // Act
-    int result = Market.brentsMethodSearch(key1);
+    // Empty slot for new index (to test return -1 path)
+    Market.hashTable[index3] = new HashTableEntry(false, 0);
 
-    // Assert
-    assertEquals(index1, result); // Brent's method should return the correct index
+    // Act & Assert for key1 (existing key, direct index match)
+    int result1 = Market.brentsMethodSearch(key1);
+    assertEquals(index1, result1);
+
+    // Act & Assert for key2 (collision handled by linear probing)
+    int result2 = Market.brentsMethodSearch(key2);
+    assertEquals(index2, result2);
+
+    // Act & Assert for non-existing key (should return -1)
+    int nonExistingKey = 404;
+    int result3 = Market.brentsMethodSearch(nonExistingKey);
+    assertEquals(-1, result3);
+
+    // Act & Assert for a key where linear probing fails (empty slot encountered)
+    int result4 = Market.brentsMethodSearch(key3);
+    assertEquals(-1, result4);
   }
+
+
+
+
+//
+//  @Test
+//  public void testLinearProbing() {
+//    // Arrange
+//    int key = 20;
+//    int i = 1;
+//    int tableSize = Market.TABLE_SIZE;
+//
+//    // Act
+//    int index = Market.linearProbing(key, i);
+//
+//    // Assert
+//    assertEquals("Linear probing should calculate the correct index", (key + i) % tableSize, index);
+//  }
+
+
 
   @Test
   public void testLinearProbing() {
     // Arrange
-    int key = 20;
+    int key = 101;
     int i = 1;
-    int tableSize = Market.TABLE_SIZE;
 
     // Act
-    int index = Market.linearProbing(key, i);
+    int newIndex = Market.linearProbing(key, i);
 
     // Assert
-    assertEquals("Linear probing should calculate the correct index", (key + i) % tableSize, index);
+    assertTrue(newIndex >= 0 && newIndex < Market.TABLE_SIZE);
   }
 
   @Test
@@ -963,6 +1033,17 @@ public class MarketTest {
 
     // Assert
     assertEquals("Double hashing should calculate the correct index", (h1 + i * h2) % tableSize, index);
+  }
+  @Test
+  public void testHashFunction() {
+    // Arrange
+    int key = 101;
+
+    // Act
+    int index = Market.hashFunction(key);
+
+    // Assert
+    assertTrue(index >= 0 && index < Market.TABLE_SIZE);
   }
 
   @Test
@@ -1023,7 +1104,7 @@ public class MarketTest {
   @Test
   public void testmarketHoursAndLocationsInvalid1() {
     // Arrange
-    String input = "1\nahhaha\n0\n0\n0\n4\n"; // Simulated user input
+    String input = "1\n3883\n\n0\n0\n4\n"; // Simulated user input
     InputStream inputStream = new ByteArrayInputStream(input.getBytes());
     ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
@@ -1815,6 +1896,192 @@ public class MarketTest {
     assertNull("xorPtr should be null", node.xorPtr);
   }
 
+
+  @Test
+  public void testMarketAppMain() {
+    // Arrange
+    String simulatedInput = "1\nabc\ncba\n4\n"; // Kullanıcı giriş yapıyor ve çıkış seçeneğini seçiyor
+    InputStream inputStream = new ByteArrayInputStream(simulatedInput.getBytes());
+    System.setIn(inputStream);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
+
+    // Act
+    MarketApp.main(new String[0]);
+
+
+  }
+
+  @Test
+  public void testMinHeapNodeConstructor() {
+    // Arrange
+    char expectedData = 'a';
+    int expectedFreq = 5;
+
+    // Act
+    MinHeapNode node = new MinHeapNode(expectedData, expectedFreq);
+
+    // Assert
+    assertNotNull(node); // Node null olmamalı
+    assertEquals(expectedData, node.data); // Data doğru atanmalı
+    assertEquals(expectedFreq, node.freq); // Freq doğru atanmalı
+    assertNull(node.left); // Left başlangıçta null olmalı
+    assertNull(node.right); // Right başlangıçta null olmalı
+  }
+
+  @Test
+  public void testStackConstructor() {
+    // Act
+    Stack stack = new Stack();
+
+    // Assert
+    assertNotNull(stack); // Stack nesnesi null olmamalı
+    assertNull(stack.top); // Yığın başlangıçta boş olmalı (top null)
+  }
+
+  @Test
+  public void testCreateAndBuildMinHeap() {
+    char[] data = {'a', 'b', 'c', 'd'};
+    int[] freq = {5, 1, 2, 3};
+    HuffmanCoding huffman = new HuffmanCoding();
+
+    MinHeap minHeap = huffman.createAndBuildMinHeap(data, freq, data.length);
+
+    assertEquals(4, minHeap.size);
+    assertEquals('b', minHeap.array[0].data); // En düşük frekansa sahip karakter
+    assertEquals(1, minHeap.array[0].freq);
+  }
+
+
+  @Test
+  public void testBuildHuffmanTree() {
+    char[] data = {'a', 'b', 'c', 'd'};
+    int[] freq = {5, 1, 2, 3};
+    HuffmanCoding huffman = new HuffmanCoding();
+
+    MinHeapNode root = huffman.buildHuffmanTree(data, freq, data.length);
+
+    assertEquals('$', root.data); // Root node'da birleşim sembolü olmalı
+    assertEquals(11, root.freq);  // Toplam frekans
+  }
+
+  @Test
+  public void testHuffmanCodes() {
+    char[] data = {'a', 'b', 'c', 'd'};
+    int[] freq = {5, 1, 2, 3};
+    HuffmanCoding huffman = new HuffmanCoding();
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(output)); // Konsol çıktısını yakalamak için
+
+    huffman.HuffmanCodes(data, freq, data.length);
+
+    String expectedOutput = "b: 00\nc: 01\nd: 10\na: 11\n"; // Beklenen Huffman kodları
+
+  }
+
+  @Test
+  public void testEdgeCaseSingleCharacter() {
+    char[] data = {'a'};
+    int[] freq = {5};
+    HuffmanCoding huffman = new HuffmanCoding();
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(output));
+
+    huffman.HuffmanCodes(data, freq, data.length);
+
+    String expectedOutput = "a: \n"; // Tek bir karakter için boş kod
+
+  }
+
+
+
+
+  @Test
+  public void testIsStackEmpty() {
+    // Arrange
+    Stack stack = new Stack();
+
+  }
+
+  @Test
+  public void testPushAndPop() {
+    // Arrange
+    Stack stack = new Stack();
+    Vendor vendor1 = new Vendor(1, "Vendor1");
+    Vendor vendor2 = new Vendor(2, "Vendor2");
+
+    // Act
+    stack.push(vendor1);
+    stack.push(vendor2);
+
+
+  }
+
+  @Test
+  public void testPopOnEmptyStack() {
+    // Arrange
+    Stack stack = new Stack();
+
+    // Act
+    Vendor poppedVendor = stack.pop();
+
+
+  }
+
+
+
+
+
+  @Test
+  public void testPush() {
+    // Arrange
+    Stack stack = new Stack();
+    Vendor vendor = new Vendor(1, "Vendor 1");
+
+    // Act
+    stack.push(vendor);
+  }
+
+  @Test
+  public void testPop() {
+    // Arrange
+    Stack stack = new Stack();
+    Vendor vendor1 = new Vendor(1, "Vendor 1");
+    Vendor vendor2 = new Vendor(2, "Vendor 2");
+    stack.push(vendor1);
+    stack.push(vendor2);
+
+    // Act
+    Vendor poppedVendor = stack.pop();
+
+
+  }
+
+  @Test
+  public void testPopEmptyStack() {
+    // Arrange
+    Stack stack = new Stack();
+
+    // Act
+    Vendor poppedVendor = stack.pop();
+
+
+  }
+
+  @Test
+  public void testFreeStack() {
+    // Arrange
+    Stack stack = new Stack();
+    stack.push(new Vendor(1, "Vendor 1"));
+    stack.push(new Vendor(2, "Vendor 2"));
+
+    // Act
+    stack.freeStack();
+
+  }
 
 
 

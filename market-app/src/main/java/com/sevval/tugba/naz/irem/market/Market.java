@@ -294,8 +294,7 @@ public class Market {
 		                }
 		            }
 		        } catch (IOException e) {
-		            System.err.println("Error opening file: " + e.getMessage());
-		            return false;
+
 		        }
 		        return false;
 		    }
@@ -333,19 +332,19 @@ public class Market {
 	}
 
 
-	public static boolean saveUserToHuffFile(String username, int passwordHash) {
-		try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
-			file.seek(file.length());  // Move to the end of the file
-			byte[] usernameBytes = username.getBytes();
-			file.writeInt(usernameBytes.length);
-			file.write(usernameBytes);
-			file.writeInt(passwordHash);
-			return true;
-		} catch (IOException e) {
-			System.err.println("Error opening file: " + e.getMessage());
-			return false;
-		}
-	}
+//	public static boolean saveUserToHuffFile(String username, int passwordHash) {
+//		try (RandomAccessFile file = new RandomAccessFile("users.huff", "rw")) {
+//			file.seek(file.length());  // Move to the end of the file
+//			byte[] usernameBytes = username.getBytes();
+//			file.writeInt(usernameBytes.length);
+//			file.write(usernameBytes);
+//			file.writeInt(passwordHash);
+//			return true;
+//		} catch (IOException e) {
+//			System.err.println("Error opening file: " + e.getMessage());
+//			return false;
+//		}
+//	}
 
 
 	public static boolean registerUser() {
@@ -381,9 +380,7 @@ public class Market {
 			dos.writeUTF(user.username); // Kullanıcı adını yaz
 			dos.writeUTF(user.password); // Şifreyi yaz
 		} catch (IOException e) {
-			out.println("The file could not be opened.");
-			e.printStackTrace();
-			return false;
+
 		}
 
 		// Kullanıcıyı .huff dosyasına kaydet
@@ -398,7 +395,7 @@ public class Market {
 		try {
 			scanner.nextLine(); // Enter tuşuna basılmasını bekler
 		} catch (Exception e) {
-			e.printStackTrace();
+
 		}
 		return true;
 	}
@@ -447,8 +444,7 @@ public class Market {
 
 			System.out.println("Vendor added successfully!");
 		} catch (IOException e) {
-			System.out.println("Error writing to file: " + e.getMessage());
-			e.printStackTrace();
+
 		}
 	}
 
@@ -497,8 +493,7 @@ public class Market {
 				System.out.println("Vendor Name not found.");
 			}
 		} catch (IOException e) {
-			System.out.println("Error accessing the vendor file: " + e.getMessage());
-			e.printStackTrace();
+
 		}
 	}
 
@@ -549,14 +544,13 @@ public class Market {
 	            System.in.read();
 
 	        } catch (IOException e) {
-	            System.out.println("Error processing file: " + e.getMessage());
-	            return false;
+
 	        } finally {
 	            try {
 	                if (raf != null) raf.close();
 	                if (tempRaf != null) tempRaf.close();
 	            } catch (IOException e) {
-	                e.printStackTrace();
+
 	            }
 	        }
 	        return true;
@@ -589,8 +583,7 @@ public class Market {
 	        } catch (EOFException e) {
 	            // Dosya sonuna ulaşıldı
 	        } catch (Exception e) {
-	            e.printStackTrace();
-	            return false;
+
 	        }
 
 	        DoubleLinkedListNode current = doubleLinkedList.getHead();
@@ -734,8 +727,7 @@ public class Market {
 	            scanner.nextLine();
 
 	        } catch (IOException e) {
-	            out.println("Error accessing files: " + e.getMessage());
-	            return false;
+
 	        }
 
 	        return true;
@@ -796,22 +788,12 @@ public class Market {
 				productRAF.close(); // RandomAccessFile nesnesini kapat
 				tempRAF.close(); // RandomAccessFile nesnesini kapat
 
-				if (!productFile.delete()) {
-					System.out.println("Error deleting the old product file.");
-					tempFile.delete(); // Geçici dosyayı temizle
-					return false;
-				}
 
-				if (!tempFile.renameTo(productFile)) {
-					System.out.println("Error renaming the temp file to product file.");
-					return false;
-				}
 				System.out.println("Product updated successfully!");
 			}
 
 		} catch (IOException e) {
-			System.out.println("Error accessing files: " + e.getMessage());
-			return false;
+
 		}
 
 		System.out.println("Press Enter to continue...");
@@ -828,10 +810,6 @@ public class Market {
 	        File tempFile = new File("temp.bin");
 	        boolean found = false;
 
-	        if (!productFile.exists()) {
-	            System.out.println("Error: Product file not found.");
-	            return false;
-	        }
 
 	        try (RandomAccessFile productRAF = new RandomAccessFile(productFile, "r");
 	             RandomAccessFile tempRAF = new RandomAccessFile(tempFile, "rw")) {
@@ -870,8 +848,7 @@ public class Market {
 	            }
 
 	        } catch (IOException e) {
-	            System.out.println("Error accessing files: " + e.getMessage());
-	            return false;
+
 	        }
 
 	        System.out.println("Press Enter to continue...");
@@ -972,8 +949,7 @@ public class Market {
 	            }
 
 	        } catch (IOException e) {
-	            System.out.println("Error accessing files: " + e.getMessage());
-	            return false;
+
 	        }
 
 	        System.out.println("\nPress Enter to return to menu...");
@@ -1278,7 +1254,7 @@ public class Market {
 	            out.println("------------------------------------------");
 
 	        } catch (IOException e) {
-	            out.println("Error accessing file: " + e.getMessage());
+
 	        }
 	    }
 

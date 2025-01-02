@@ -54,7 +54,7 @@ public class HuffmanCoding {
         }
     }
 
-    private MinHeap createAndBuildMinHeap(char[] data, int[] freq, int size) {
+    public MinHeap createAndBuildMinHeap(char[] data, int[] freq, int size) {
         MinHeap minHeap = new MinHeap(size);
 
         for (int i = 0; i < size; ++i) {
@@ -67,7 +67,7 @@ public class HuffmanCoding {
         return minHeap;
     }
 
-    private MinHeapNode buildHuffmanTree(char[] data, int[] freq, int size) {
+    public MinHeapNode buildHuffmanTree(char[] data, int[] freq, int size) {
         MinHeapNode left, right, top;
 
         MinHeap minHeap = createAndBuildMinHeap(data, freq, size);
