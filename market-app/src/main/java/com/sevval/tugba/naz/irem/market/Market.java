@@ -1173,12 +1173,12 @@ public class Market {
 	            if (!found) {
 	                System.out.println("Product with name '" + productName + "' not found.");
 	                tempFile.delete();
-	            } else {
-	                if (productFile.delete() && tempFile.renameTo(productFile)) {
-	                    System.out.println("Product deleted successfully!");
-	                } else {
-	                    System.out.println("Error updating the product file.");
-	                }
+	//            } else {
+	//                if (productFile.delete() && tempFile.renameTo(productFile)) {
+	//                    System.out.println("Product deleted successfully!");
+	//               } else {
+	//                  System.out.println("Error updating the product file.");
+	//             }
 	            }
 
 	        } catch (IOException e) {
@@ -1999,8 +1999,6 @@ public class Market {
 				out.printf("Market ID %d not found.%n", marketId);
 			}
 		} catch (IOException e) {
-			out.println("Error accessing the market hours file: " + e.getMessage());
-			e.printStackTrace();
 			return false;
 		}
 
