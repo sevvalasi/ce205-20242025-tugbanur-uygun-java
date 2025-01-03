@@ -951,27 +951,31 @@ public class Market {
 	     * @brief Checks if the stack is empty.
 	     * @return `true` if the stack is empty; otherwise, `false`.
 	     */
+	    
+	    /*
 	    public boolean isStackEmpty() {
 	        return top == null;
 	    }
-
+*/
 	    /**
 	     * @brief Pushes a vendor onto the stack.
 	     * @details Adds a new vendor node to the top of the stack.
 	     * @param vendor The vendor to push onto the stack.
 	     */
+	    /*
 	    public void push(Vendor vendor) {
 	        StackNode newNode = new StackNode(vendor);
 	        newNode.next = top;
 	        top = newNode;
 	    }
-	    
+	    */
 	  
 	    /**
 	     * @brief Pops a vendor from the stack.
 	     * @details Removes the top vendor node from the stack and returns it.
 	     * @return The popped vendor object or an empty vendor object if the stack is empty.
 	     */
+	    /*
 	    public Vendor pop() {
 	        if (isStackEmpty()) {
 	            out.println("Stack is empty.");
@@ -981,17 +985,19 @@ public class Market {
 	        top = top.next;
 	        return vendor;
 	    }
-
+*/
 	    /**
 	     * @brief Frees all nodes in the stack.
 	     * @details Removes all vendors from the stack and clears the stack.
 	     */
+	    
+	    /*
 	    public void freeStack() {
 	        while (!isStackEmpty()) {
 	            pop();
 	        }
 	    }
-	    
+	    */
 	    /**
 	     * @brief Adds a new product to the product file.
 	     * @details Prompts the user for product details such as name, price, quantity, season, and associated vendor ID.
