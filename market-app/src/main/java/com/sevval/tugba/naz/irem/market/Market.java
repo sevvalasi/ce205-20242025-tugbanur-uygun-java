@@ -250,6 +250,7 @@ public class Market {
      * @note Provides validation to ensure the input is an integer.
      */
     private static int getInput() {
+    	clearScreen();
         while (!scanner.hasNextInt()) {
             scanner.next();
             out.println("Invalid input. Please enter a valid number.");
@@ -325,7 +326,7 @@ public class Market {
      * @return `true` when the user chooses to exit the main menu.
      */
 	    public static boolean mainMenu() {
-
+	    	clearScreen();
 	        int choice;
 
 
@@ -397,7 +398,7 @@ public class Market {
 	     * @return `true` when the user chooses to return to the main menu.
 	     */
 	    public static boolean listingOfLocalVendors() {
-
+	    	clearScreen();
 	        int choice;
 
 	        do {
@@ -414,6 +415,7 @@ public class Market {
 	            out.print("Choose an option: ");
 	            choice = getInput();
 	        
+	            clearScreen();
 	            switch (choice) {
 	                case 1:
 	                	/**
@@ -460,6 +462,7 @@ public class Market {
 	     * @return `true` when the user chooses to return to the main menu.
 	     */
 		public static boolean listingOfLocalProducts() {
+			clearScreen();
 	        int choice;
 
 	        do {
@@ -476,6 +479,7 @@ public class Market {
 	            out.print("Choose an option: ");
 	            choice = getInput();
 
+	            clearScreen();
 	            switch (choice) {
 	                case 1:
 	                	/**
@@ -570,32 +574,40 @@ public class Market {
 		  * @see loginUserFromHuffFile(String username, String password)
 		  */
 	public static boolean loginUser() {
+		clearScreen();
 		String username;
 		String password;
 
+		clearScreen();
 		// Username validation
 		do {
+			clearScreen();
 			out.print("Username: ");
 			username = scanner.nextLine();
 			if (username.trim().isEmpty()) {
+				clearScreen();
 				out.println("Username cannot be empty. Please enter a valid username.");
 			}
 		} while (username.trim().isEmpty()); // Prompt until a non-empty username is entered
 
 		// Password validation
 		do {
+			clearScreen();
 			out.print("Password: ");
 			password = scanner.nextLine();
 			if (password.trim().isEmpty()) {
+				clearScreen();
 				out.println("Password cannot be empty. Please enter a valid password.");
 			}
 		} while (password.trim().isEmpty()); // Prompt until a non-empty password is entered
 
 		// Validate credentials
 		if (loginUserFromHuffFile(username, password)) {
+			clearScreen();
 			out.printf("Login successful. Welcome! %s.\n", username);
 			return true;
 		} else {
+			clearScreen();
 			out.println("Incorrect username or password.");
 			return false;
 		}
@@ -639,18 +651,22 @@ public class Market {
 
 		// Validate and collect username
 		do {
+			clearScreen();
 			out.print("Username: ");
 			user.username = scanner.nextLine();
 			if (user.username.trim().isEmpty()) {
+				clearScreen();
 				out.println("Username cannot be empty. Please enter a valid username.");
 			}
 		} while (user.username.trim().isEmpty()); // Username boş ise tekrar sor
 
 		// Validate and collect password
 		do {
+			clearScreen();
 			out.print("Password: ");
 			user.password = scanner.nextLine();
 			if (user.password.trim().isEmpty()) {
+				clearScreen();
 				out.println("Password cannot be empty. Please enter a valid password.");
 			}
 		} while (user.password.trim().isEmpty());
@@ -659,12 +675,14 @@ public class Market {
 		try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("users.bin", true))) {
 			dos.writeUTF(user.username); // Save username
 			dos.writeUTF(user.password); // Save password
+			clearScreen();
 		} catch (IOException e) {
 
 		}
 
 		// Save user data to a Huffman-encoded file
 		if (!saveUserToHuffFile(user.username, user.password)) {
+			clearScreen();
 			out.println("Failed to save user to .huff file.");
 			return false;
 		}
@@ -710,6 +728,7 @@ public class Market {
 	 * @throws IOException If there is an error writing to the file.
 	 */
 	public static void addVendor() {
+		clearScreen();
 		Random random = new Random();
 
 		File file = new File("vendor.bin");
@@ -731,7 +750,8 @@ public class Market {
 
 			raf.writeInt(vendorId); 
 			raf.writeUTF(vendorName);
-
+			
+	        clearScreen(); 
 			System.out.println("Vendor added successfully!");
 		} catch (IOException e) {
 
@@ -894,7 +914,8 @@ public class Market {
 	            System.out.printf("ID: %d, Name: %s%n", current.getVendor().getId(), current.getVendor().getName());
 	            System.out.print("\n'n' for Next, 'p' for Previous, 's' for Stack traversal, 'q' for Queue traversal, 'x' to Quit: ");
 	            String choice = scanner.nextLine().trim();
-
+	            clearScreen();
+	            
 	            if ("n".equalsIgnoreCase(choice)) {
 	                if (current.getNext() != null) {
 	                    current = current.getNext();
@@ -1216,6 +1237,7 @@ public class Market {
 	     * @throws IOException If there is an error reading the files.
 	     */
 	    public static boolean listingOfLocalVendorsandProducts() {
+	    	
 	        File productFile = new File("products.bin");
 	        File vendorFile = new File("vendor.bin");
 
@@ -1542,6 +1564,7 @@ public class Market {
 	     * @return `true` if the user exits to the main menu; otherwise, the menu loops.
 	     */
 	    public static boolean priceComparison() {
+	    	clearScreen();
             int choice;
             StringBuffer selectedProductName = new StringBuffer();
 
@@ -1556,6 +1579,8 @@ public class Market {
                 out.println("==========================================");
                 out.print("Choose an option: ");
                 choice = getInput();
+                
+                clearScreen();
 
                 switch (choice) {
                     case 1:
@@ -1650,6 +1675,7 @@ public class Market {
 	 * @note Requires a product to be selected first using the `selectProduct` method.
 	 */
 	public static void comparePrices() {
+		clearScreen();
 	        if (ProductSelection.selectedProductName.length() == 0) {
 	            out.println("No product selected. Please select a product first (Option 1).");
 	            return;
@@ -1838,7 +1864,9 @@ public class Market {
 			boolean found = false;
 
 			System.out.print("Enter Market ID: ");
+			clearScreen();
 			while (!scanner.hasNextInt()) {
+				clearScreen();
 				System.out.println("Invalid input. Please enter a valid numeric Market ID: ");
 				scanner.next(); 
 			}
@@ -1850,6 +1878,8 @@ public class Market {
 				int vendorId = vendorRAF.readInt();
 				String vendorName = vendorRAF.readUTF();
 				if (vendorId == market.getId()) {
+					clearScreen();
+					System.out.printf("Vendor Found: ID=%d, Name=%s%n", vendorId, vendorName);
 					found = true;
 					break;
 				}
@@ -1883,10 +1913,12 @@ public class Market {
 			marketHoursRAF.writeUTF(market.getHours()); 
 			marketHoursRAF.writeUTF(market.getLocation());
 
+			clearScreen();
 			System.out.println("Market hours and location added successfully!");
 			return true;
 
 		} catch (IOException e) {
+			clearScreen();
 			System.out.println("Error accessing files: " + e.getMessage());
 			e.printStackTrace();
 			return false;
@@ -1973,6 +2005,7 @@ public class Market {
 				if (market.getId() == marketId) {
 					found = true;
 
+					clearScreen();
 					out.print("Enter new Day (e.g., Monday): ");
 					String day = scanner.nextLine();
 					while (!validateDay(day)) {
@@ -1996,12 +2029,15 @@ public class Market {
 
 					file.seek(recordPosition); 
 					market.writeToFile(file); 
+					
+					clearScreen();
 					out.println("Market hours and location updated successfully!");
 					return true;
 				}
 			}
 
 			if (!found) {
+				clearScreen();
 				out.printf("Market ID %d not found.%n", marketId);
 			}
 		} catch (IOException e) {
@@ -2182,6 +2218,7 @@ public class Market {
 		  * @return `true` if the user exits to the main menu; otherwise, loops through the menu options.
 		  */
 	    public static boolean searchProductsOrEnterKeyword() {
+	    	clearScreen();
 	        int choice;
 
 	        do {
@@ -2196,6 +2233,7 @@ public class Market {
 	            out.print("Choose an option: ");
 	            choice = getInput();
 
+	            clearScreen();
 	            switch (choice) {
 	                case 1:
 	                    enterSearchProducts();
